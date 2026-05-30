@@ -826,11 +826,11 @@
     };
 
     const lineDefs = [
-      { id: "pitch", name: "Bolzplatz", tag: "Tickets", desc: "Eintritt, Bratwurstduft und die ersten Stammgaeste.", base: 25, scale: 1.16, out: { euro: 1.8, fans: .08 } },
-      { id: "youth", name: "Jugendteam", tag: "Talente", desc: "Eltern fahren, Kinder traeumen, Scouts notieren.", base: 150, scale: 1.18, out: { talents: .05, strength: .015 } },
-      { id: "shop", name: "Fanshop", tag: "Merch", desc: "Schals, Trikots und Tassen mit Clubwappen.", base: 900, scale: 1.2, out: { euro: 9, brand: .04 } },
-      { id: "media", name: "Medienbuero", tag: "Marke", desc: "Highlights, Interviews und die ersten viralen Clips.", base: 6500, scale: 1.22, out: { brand: .22, fans: .35 } },
-      { id: "data", name: "Datenlabor", tag: "Multiplikator", desc: "Analysen machen jede Abteilung ein bisschen klueger.", base: 45000, scale: 1.25, out: { strength: .22, brand: .18 } },
+      { id: "pitch", name: "Bolzplatz", tag: "Tickets", desc: "Eintritt, Bratwurstduft und die ersten Stammgaeste.", base: 45, scale: 1.15, out: { euro: 1.55, fans: .06 } },
+      { id: "youth", name: "Jugendteam", tag: "Talente", desc: "Eltern fahren, Kinder traeumen, Scouts notieren.", base: 180, scale: 1.17, out: { talents: .07, strength: .018 } },
+      { id: "shop", name: "Fanshop", tag: "Merch", desc: "Schals, Trikots und Tassen mit Clubwappen.", base: 750, scale: 1.19, out: { euro: 7.5, brand: .055 } },
+      { id: "media", name: "Medienbuero", tag: "Marke", desc: "Highlights, Interviews und die ersten viralen Clips.", base: 4200, scale: 1.21, out: { brand: .3, fans: .28 } },
+      { id: "data", name: "Datenlabor", tag: "Multiplikator", desc: "Analysen machen jede Abteilung ein bisschen klueger.", base: 36000, scale: 1.24, out: { strength: .26, brand: .15 } },
       { id: "global", name: "Globales Netzwerk", tag: "Spaetspiel", desc: "Partnerakademien, Tourneen und Fans auf jedem Kontinent.", base: 2_000_000, scale: 1.3, out: { euro: 1500, fans: 18, brand: 5 } }
     ];
 
@@ -889,10 +889,10 @@
     ];
 
     const automationDefs = [
-      { name: "Vorverkaufszettel", desc: "Fans organisieren die Eingangsschlange. Weniger Klick-Pause.", costs: { euro: 350, fans: 35 }, cooldown: 5, interval: 0 },
-      { name: "Spieltagsplan", desc: "Talente helfen als Ballkinder, Ordner und Social-Team.", costs: { euro: 2500, talents: 8 }, cooldown: 3.5, interval: 0 },
-      { name: "Heimspielbuero", desc: "Das erste echte Auto-Heimspiel: die Geschaeftsstelle taktet selbst.", costs: { euro: 18000, brand: 60 }, cooldown: 2.25, interval: 25 },
-      { name: "Saisonmaschine", desc: "Ticketing, Catering und Presse laufen in einem Rhythmus.", costs: { euro: 125000, fans: 1200, talents: 60 }, cooldown: 1.25, interval: 12 },
+      { name: "Vorverkaufszettel", desc: "Fans organisieren die Eingangsschlange. Weniger Klick-Pause.", costs: { euro: 420, fans: 45 }, cooldown: 5, interval: 0 },
+      { name: "Spieltagsplan", desc: "Talente helfen als Ballkinder, Ordner und Social-Team.", costs: { euro: 1800, talents: 5 }, cooldown: 3.5, interval: 0 },
+      { name: "Heimspielbuero", desc: "Das erste echte Auto-Heimspiel: die Geschaeftsstelle taktet selbst.", costs: { euro: 12000, brand: 35 }, cooldown: 2.25, interval: 25 },
+      { name: "Saisonmaschine", desc: "Ticketing, Catering und Presse laufen in einem Rhythmus.", costs: { euro: 95000, fans: 1000, talents: 45 }, cooldown: 1.25, interval: 12 },
       { name: "Autonomer Clubbetrieb", desc: "Heimspiele werden fast von allein zu grossen Abenden.", costs: { euro: 1200000, brand: 5000 }, cooldown: .7, interval: 5 }
     ];
 
@@ -914,6 +914,7 @@
       legends: Big.zero(),
       mood: 1,
       matchCooldown: 0,
+      competitionCooldown: 0,
       auto: { match: 0, matchTimer: 0 },
       leagueIndex: 0,
       scout: { batch: [], seen: 0 },
@@ -1065,10 +1066,10 @@
     function runMatch(source = "manual") {
       if (source === "manual" && state.matchCooldown > 0) return;
       const crowd = attendance();
-      const ticket = 7.5 * (1 + upgradeLevel("catering") * .12);
+      const ticket = 6.2 * (1 + upgradeLevel("catering") * .12);
       const money = Big.scale(crowd, ticket * state.mood);
-      const fanGain = Big.add(Big.from(8), Big.scale(state.strength, .05 + state.mood * .03));
-      const brandGain = Big.scale(fanGain, .045 + state.leagueIndex * .012);
+      const fanGain = Big.add(Big.from(5), Big.scale(state.strength, .045 + state.mood * .025));
+      const brandGain = Big.scale(fanGain, .055 + state.leagueIndex * .012);
       state.euro = Big.add(state.euro, money);
       state.fans = Big.add(state.fans, fanGain);
       state.brand = Big.add(state.brand, brandGain);
@@ -1098,8 +1099,8 @@
     function scoutCost() {
       const seen = state.scout?.seen || 0;
       return {
-        euro: 180 + seen * 80,
-        fans: 8 + seen * 3
+        euro: 240 + seen * 95,
+        fans: 12 + seen * 4
       };
     }
 
@@ -1242,6 +1243,9 @@
       const def = competitionDefs[index];
       const plan = matchPlans.find(item => item.id === planId) || matchPlans[0];
       if (state.leagueIndex > index) return;
+      const entry = competitionEntryCost(def, plan);
+      if (state.competitionCooldown > 0 || !payCosts(entry)) return;
+      state.competitionCooldown = 18 + index * 6;
       const chance = competitionChance(def, plan);
       const roll = Math.random();
       if (roll <= chance) {
@@ -1261,6 +1265,14 @@
         addLog(def.name + " verloren mit " + plan.name + ". Trotzdem +" + Big.fmt(Big.from(consolation)) + " Fans durch Drama.");
       }
       render();
+    }
+
+    function competitionEntryCost(def, plan) {
+      const planRisk = plan.id === "control" ? 1 : (plan.id === "attack" ? 1.12 : .9);
+      return {
+        euro: Math.max(120, Math.round(def.prize * .045 * planRisk)),
+        fans: Math.max(12, Math.round(def.brand * .45 * planRisk))
+      };
     }
 
     function competitionChance(def, plan) {
@@ -1300,6 +1312,7 @@
       state.talents = Big.add(state.talents, Big.scale(r.talents, dt));
       state.mood = Math.max(1, state.mood - dt * .006);
       state.matchCooldown = Math.max(0, (state.matchCooldown || 0) - dt);
+      state.competitionCooldown = Math.max(0, (state.competitionCooldown || 0) - dt);
 
       const interval = autoInterval();
       if (interval > 0) {
@@ -1342,6 +1355,7 @@
           talents: Big.from(loaded.talents),
           legends: Big.from(loaded.legends),
           matchCooldown: loaded.matchCooldown || 0,
+          competitionCooldown: loaded.competitionCooldown || 0,
           auto: { ...fresh.auto, ...(loaded.auto || {}) },
           scout: { ...fresh.scout, ...(loaded.scout || {}) },
           lines: { ...fresh.lines, ...(loaded.lines || {}) },
@@ -1617,7 +1631,8 @@
         const progress = Math.min(100, Big.toNumber(Big.mul(Big.from(100), Big.from(Big.toNumber(state.strength) / def.need))));
         const plans = matchPlans.map(plan => {
           const chance = Math.round(competitionChance(def, { ...plan, variance: 0 }) * 100);
-          return `<button data-action="competition" data-id="${def.id}" data-plan="${plan.id}" ${won ? "disabled" : ""}>${plan.name}<br>${chance}%</button>`;
+          const entry = competitionEntryCost(def, plan);
+          return `<button data-action="competition" data-id="${def.id}" data-plan="${plan.id}" ${won ? "disabled" : ""}>${plan.name}<br>${chance}% | ${Big.fmt(Big.from(entry.euro), " EUR")} + ${Big.fmt(Big.from(entry.fans))} Fans</button>`;
         }).join("");
         return `<article class="card">
           <div class="card-head">
@@ -1625,7 +1640,7 @@
             <span class="tag">${won ? "Gewonnen" : Big.fmt(Big.from(def.need)) + " STA"}</span>
           </div>
           <div class="bar"><span style="width:${won ? 100 : progress}%"></span></div>
-          <p class="muted">Matchplan waehlen: sicherer Aufbau, Spektakel oder mutiger Underdog-Coup.</p>
+          <p class="muted">Matchplan waehlen. Jeder Versuch kostet Vorbereitung und sperrt Wettbewerbe kurz: ${state.competitionCooldown > 0 ? trim(state.competitionCooldown, 1) + "s Pause" : "bereit"}.</p>
           <div class="choice-row">${plans}</div>
         </article>`;
       }).join("");
@@ -1670,7 +1685,9 @@
       });
       document.querySelectorAll("button[data-action='competition']").forEach(button => {
         const index = competitionDefs.findIndex(item => item.id === button.dataset.id);
-        button.disabled = state.leagueIndex > index;
+        const def = competitionDefs[index];
+        const plan = matchPlans.find(item => item.id === button.dataset.plan) || matchPlans[0];
+        button.disabled = state.leagueIndex > index || state.competitionCooldown > 0 || !canPayCosts(competitionEntryCost(def, plan));
       });
       document.querySelectorAll("button[data-action='automation']").forEach(button => {
         const def = nextAutomationDef();

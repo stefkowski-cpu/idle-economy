@@ -83,6 +83,8 @@ Underdog-Plan
 
 Die angezeigte Prozentzahl ist deine grobe Erfolgschance. Sie entsteht aus Teamstaerke, Stimmung, Trainern, Planwahl und einem kleinen Zufallsanteil.
 
+Jeder Wettbewerbsversuch kostet Vorbereitung, aktuell Euro + Fans, und loest eine kurze Wettbewerbspause aus. Dadurch kann man einen Pokal nicht endlos kostenlos auswuerfeln. Ein gluecklicher Sieg bleibt stark, aber er ueberspringt nicht mehr die komplette Club-Oekonomie.
+
 
 Automatisierung
 ---------------
