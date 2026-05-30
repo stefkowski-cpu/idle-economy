@@ -23,14 +23,14 @@ Schnellstart
 5. Verbessere die Clubentwicklung.
    Stadionausbau, Catering, Akademie, Marketing und Automatisierung geben dauerhafte Boni.
 
-6. Verpflichtete Spieler und Trainer geben grosse Spruenge.
-   Spieler bringen Teamstaerke, Fans und Markenwert. Trainer verbessern ganze Systeme.
+6. Nutze den Scouting-Draft im Kader.
+   Spieler werden nicht einfach gekauft. Du bekommst drei Profile mit unsicheren Staerkespannen, Risiko und Scout-Sicherheit.
 
 7. Schalte Sponsoren und Medienvertraege frei.
    Vertraege zahlen passiv Euro und skalieren mit deinem Markenwert.
 
-8. Spiele Wettbewerbe, wenn deine Teamstaerke reicht.
-   Gewinne bringen Preisgeld, Markenwert, Fans und neue Ligen.
+8. Waehle bei Wettbewerben einen Matchplan.
+   Kontrolliert ist stabil, Offensiv bringt Spektakel, Underdog-Plan ist riskant, kann aber grosse Fan- und Markenmomente erzeugen.
 
 
 Waehrungsebenen
@@ -52,6 +52,36 @@ Talente
 
 Legendenpunkte
   Prestige-Waehrung fuer spaetere Spielphasen. Sie wird relevant, wenn der Club extrem gross geworden ist.
+
+
+Scouting-Draft
+--------------
+Im Kader-Tab liegen jeweils drei Spielerprofile auf dem Tisch. Das ist eine Mischung aus Klugheit und Zufall:
+
+- Position, Eigenschaft, Kosten, Risiko und Scout-Sicherheit sind sichtbar.
+- Die Teamstaerke ist anfangs oft nur als Spanne bekannt.
+- "Probetraining" kostet Euro und Talente, deckt aber den echten Wert auf.
+- "Sicher" verpflichten ist teurer, reduziert aber das Risiko einer Absage.
+- "Hart" verhandeln ist billiger, kann aber scheitern, wenn die Einschätzung falsch war.
+- "Weiter scouten" erzeugt eine neue Auswahl und kostet Euro + Fans.
+
+Gute Entscheidungen entstehen, wenn du nicht nur auf den billigsten Spieler schaust. Ein Rohdiamant kann stark sein, ein Medienliebling kann Markenwert bringen, eine Verletzungsfrage kann ein Schnäppchen oder ein Fehlgriff werden.
+
+
+Wettbewerbe und Matchplaene
+---------------------------
+Wettbewerbe haben keine simple "Antreten"-Taste mehr. Du waehlst vor jedem Versuch einen Matchplan:
+
+Kontrolliert
+  Weniger Risiko, stabile Siegchance, solide Belohnungen.
+
+Offensiv
+  Mehr Fans und Markenwert bei Erfolg, aber mehr Stimmungsverlust bei Niederlage.
+
+Underdog-Plan
+  Besonders spannend bei Unterlegenheit. Hohe Varianz, gute Drama-Belohnungen, aber riskant.
+
+Die angezeigte Prozentzahl ist deine grobe Erfolgschance. Sie entsteht aus Teamstaerke, Stimmung, Trainern, Planwahl und einem kleinen Zufallsanteil.
 
 
 Automatisierung

@@ -492,6 +492,22 @@
       border-left: 4px solid var(--green);
     }
 
+    .decision-card {
+      border-left: 4px solid var(--gold);
+    }
+
+    .choice-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+
+    .choice-row button {
+      min-height: 54px;
+      padding: 8px;
+      font-size: .84rem;
+    }
+
     .danger {
       background: linear-gradient(180deg, #5a2626, #331919);
       border-color: rgba(238, 104, 104, .45);
@@ -527,7 +543,7 @@
         padding: 10px;
       }
 
-      .resource-strip, .metric-grid, .split, .tabs, .dimension-grid {
+      .resource-strip, .metric-grid, .split, .tabs, .dimension-grid, .choice-row {
         grid-template-columns: 1fr;
       }
 
@@ -780,6 +796,23 @@
       { id: "star", name: "Lina Weltklasse", tag: "Star", cost: 260000, desc: "Hebt den Club in jede Sportsendung.", strength: 900, fans: 1200, brand: 140 }
     ];
 
+    const scoutNames = ["Mara Klein", "Dario Blitz", "Noah Spielmacher", "Lina Vale", "Samir Nord", "Toni Fuchs", "Elif Sommer", "Jona Stahl", "Rafa Krone", "Nika Volt", "Benno Frei", "Ari Meier"];
+    const scoutPositions = ["Tor", "Abwehr", "Sechs", "Zehn", "Fluegel", "Sturm"];
+    const scoutTraits = [
+      { name: "Medienliebling", risk: .04, brand: 1.45, fans: 1.35 },
+      { name: "Rohdiamant", risk: .12, strength: 1.5, fans: .9 },
+      { name: "Trainingsmonster", risk: .06, strength: 1.25, brand: .85 },
+      { name: "Verletzungsfrage", risk: .22, strength: 1.35, cost: .78 },
+      { name: "Publikumsspieler", risk: .08, fans: 1.55, brand: 1.15 },
+      { name: "Taktikfuchs", risk: .05, strength: 1.12, cost: 1.05 }
+    ];
+
+    const matchPlans = [
+      { id: "control", name: "Kontrolliert", desc: "Solider Plan, wenig Drama.", chance: .08, variance: .05, euro: 1, fans: 1, brand: 1, moodWin: .08, moodLoss: -.03 },
+      { id: "attack", name: "Offensiv", desc: "Mehr Spektakel, mehr Risiko.", chance: -.03, variance: .18, euro: 1.12, fans: 1.35, brand: 1.18, moodWin: .16, moodLoss: -.12 },
+      { id: "underdog", name: "Underdog-Plan", desc: "Cleverer Coup bei Unterlegenheit.", chance: .16, variance: .24, euro: .9, fans: 1.6, brand: 1.35, moodWin: .24, moodLoss: -.16 }
+    ];
+
     const trainerDefs = [
       { id: "junior", name: "Jugendtrainer", tag: "Talente", cost: 1200, desc: "Findet Rohdiamanten frueher.", mult: "academy", bonus: .18 },
       { id: "tactic", name: "Taktiktrainer", tag: "Staerke", cost: 9000, desc: "Aus elf Spielern wird ein System.", mult: "strength", bonus: .22 },
@@ -830,6 +863,7 @@
       matchCooldown: 0,
       auto: { match: 0, matchTimer: 0 },
       leagueIndex: 0,
+      scout: { batch: [], seen: 0 },
       lines: Object.fromEntries(lineDefs.map(def => [def.id, 0])),
       upgrades: Object.fromEntries(upgradeDefs.map(def => [def.id, 0])),
       players: {},
@@ -1000,6 +1034,98 @@
       render();
     }
 
+    function rand(min, max) {
+      return min + Math.random() * (max - min);
+    }
+
+    function pick(list) {
+      return list[Math.floor(Math.random() * list.length)];
+    }
+
+    function scoutCost() {
+      const seen = state.scout?.seen || 0;
+      return {
+        euro: 180 + seen * 80,
+        fans: 8 + seen * 3
+      };
+    }
+
+    function candidateCost(base) {
+      return Big.from(base.cost);
+    }
+
+    function generateCandidate(slot) {
+      const fans = Math.max(1, Big.toNumber(state.fans));
+      const strength = Math.max(1, Big.toNumber(state.strength));
+      const tier = Math.max(1, Math.log10(fans + 10) + state.leagueIndex * .55);
+      const trait = pick(scoutTraits);
+      const baseStrength = rand(4, 14) * tier * (trait.strength || 1);
+      const spread = rand(.32, .72);
+      const costMult = trait.cost || 1;
+      const cost = Math.max(80, Math.floor((baseStrength * 58 + strength * 18 + rand(0, 220)) * costMult));
+      const actual = Math.max(1, Math.round(baseStrength * rand(1 - spread / 2, 1 + spread)));
+      return {
+        id: "scout-" + Date.now().toString(36) + "-" + slot + "-" + Math.floor(Math.random() * 9999),
+        name: pick(scoutNames),
+        pos: pick(scoutPositions),
+        trait: trait.name,
+        cost,
+        min: Math.max(1, Math.floor(baseStrength * (1 - spread))),
+        max: Math.max(2, Math.ceil(baseStrength * (1 + spread))),
+        actual,
+        fans: Math.max(1, Math.round(actual * rand(.5, 1.7) * (trait.fans || 1))),
+        brand: Math.max(.1, Math.round(actual * rand(.04, .22) * (trait.brand || 1) * 10) / 10),
+        risk: trait.risk + rand(0, .08),
+        certainty: Math.round(rand(46, 82)),
+        revealed: false
+      };
+    }
+
+    function refreshScouting(free = false) {
+      const costs = scoutCost();
+      if (!free && !payCosts(costs)) return;
+      state.scout.batch = [0, 1, 2].map(generateCandidate);
+      state.scout.seen = (state.scout.seen || 0) + (free ? 0 : 1);
+      addLog(free ? "Die Scouting-Liste ist frisch." : "Neue Scouting-Runde: drei Profile liegen auf dem Tisch.");
+      render();
+    }
+
+    function trialCandidate(id) {
+      const candidate = state.scout.batch.find(item => item.id === id);
+      if (!candidate || candidate.revealed) return;
+      const costs = { talents: 2 + matchAutoLevel(), euro: Math.max(120, Math.floor(candidate.cost * .12)) };
+      if (!payCosts(costs)) return;
+      candidate.revealed = true;
+      candidate.certainty = 100;
+      addLog("Probetraining abgeschlossen: " + candidate.name + " zeigt echte Werte.");
+      render();
+    }
+
+    function recruitCandidate(id, mode) {
+      const candidate = state.scout.batch.find(item => item.id === id);
+      if (!candidate || state.players[id]) return;
+      const hard = mode === "hard";
+      const price = hard ? Big.from(Math.floor(candidate.cost * .72)) : candidateCost(candidate);
+      if (!pay(price)) return;
+      const failChance = hard ? candidate.risk + .18 : candidate.risk * .35;
+      if (Math.random() < failChance && !candidate.revealed) {
+        addLog(candidate.name + " sagt ab. Die Verhandlung war zu mutig.");
+        state.mood = Math.max(.8, state.mood - .05);
+        state.scout.batch = state.scout.batch.filter(item => item.id !== id);
+        render();
+        return;
+      }
+      const quality = candidate.revealed ? candidate.actual : Math.max(candidate.min, Math.round(rand(candidate.min, candidate.max)));
+      state.players[id] = true;
+      state.strength = Big.add(state.strength, Big.from(quality));
+      state.fans = Big.add(state.fans, Big.from(candidate.fans));
+      state.brand = Big.add(state.brand, Big.from(candidate.brand));
+      addLog(candidate.name + " unterschreibt: +" + Big.fmt(Big.from(quality)) + " Staerke, Risiko gelesen.");
+      state.scout.batch = state.scout.batch.filter(item => item.id !== id);
+      if (state.scout.batch.length === 0) refreshScouting(true);
+      render();
+    }
+
     function buyLine(id) {
       const def = lineDefs.find(item => item.id === id);
       const level = state.lines[id] || 0;
@@ -1058,18 +1184,39 @@
       return Big.cmp(state.brand, Big.from(def.needs.brand || 0)) >= 0;
     }
 
-    function playCompetition(id) {
+    function playCompetition(id, planId = "control") {
       const index = competitionDefs.findIndex(item => item.id === id);
       const def = competitionDefs[index];
+      const plan = matchPlans.find(item => item.id === planId) || matchPlans[0];
       if (state.leagueIndex > index) return;
-      if (Big.cmp(state.strength, Big.from(def.need)) < 0) return;
-      state.euro = Big.add(state.euro, Big.from(def.prize));
-      state.brand = Big.add(state.brand, Big.from(def.brand));
-      state.fans = Big.add(state.fans, Big.from(def.brand * 2));
-      state.leagueIndex = Math.max(state.leagueIndex, index + 1);
-      state.mood = Math.min(2.5, state.mood + .25);
-      addLog(def.name + " gewonnen. Naechstes Ziel: " + def.next + ".");
+      const chance = competitionChance(def, plan);
+      const roll = Math.random();
+      if (roll <= chance) {
+        const euroPrize = Math.round(def.prize * plan.euro);
+        const brandPrize = Math.round(def.brand * plan.brand);
+        const fanPrize = Math.round(def.brand * 2 * plan.fans);
+        state.euro = Big.add(state.euro, Big.from(euroPrize));
+        state.brand = Big.add(state.brand, Big.from(brandPrize));
+        state.fans = Big.add(state.fans, Big.from(fanPrize));
+        state.leagueIndex = Math.max(state.leagueIndex, index + 1);
+        state.mood = Math.min(2.5, state.mood + plan.moodWin);
+        addLog(def.name + " gewonnen mit " + plan.name + ". Naechstes Ziel: " + def.next + ".");
+      } else {
+        const consolation = Math.max(1, Math.round(def.brand * .18 * plan.fans));
+        state.fans = Big.add(state.fans, Big.from(consolation));
+        state.mood = Math.max(.75, state.mood + plan.moodLoss);
+        addLog(def.name + " verloren mit " + plan.name + ". Trotzdem +" + Big.fmt(Big.from(consolation)) + " Fans durch Drama.");
+      }
       render();
+    }
+
+    function competitionChance(def, plan) {
+      const strength = Math.max(1, Big.toNumber(state.strength));
+      const ratio = strength / Math.max(1, def.need);
+      const trainer = 1 + trainerBonus("strength") + trainerBonus("all");
+      const base = .18 + ratio * .52 + (state.mood - 1) * .12 + (trainer - 1) * .16 + plan.chance;
+      const swing = (Math.random() - .5) * plan.variance;
+      return Math.max(.08, Math.min(.94, base + swing));
     }
 
     function prestigeGain() {
@@ -1143,6 +1290,7 @@
           legends: Big.from(loaded.legends),
           matchCooldown: loaded.matchCooldown || 0,
           auto: { ...fresh.auto, ...(loaded.auto || {}) },
+          scout: { ...fresh.scout, ...(loaded.scout || {}) },
           lines: { ...fresh.lines, ...(loaded.lines || {}) },
           upgrades: { ...fresh.upgrades, ...(loaded.upgrades || {}) },
           players: loaded.players || {},
@@ -1338,7 +1486,8 @@
       }
 
       if (activeTab === "squad") {
-        target.innerHTML = playerDefs.map(def => playerCard(def)).join("") + trainerDefs.map(def => trainerCard(def)).join("");
+        if (!state.scout.batch || state.scout.batch.length === 0) refreshScouting(true);
+        target.innerHTML = renderScouting() + trainerDefs.map(def => trainerCard(def)).join("");
       }
 
       if (activeTab === "market") {
@@ -1362,17 +1511,34 @@
       updateButtons();
     }
 
-    function playerCard(def) {
-      const active = !!state.players[def.id];
+    function renderScouting() {
+      const costs = scoutCost();
+      const candidates = state.scout.batch.map(candidateCard).join("");
+      return `<article class="card decision-card">
+        <div class="card-head">
+          <div><h3>Scouting-Draft</h3><p class="muted">Waehle nicht blind: Probetraining deckt Werte auf, harte Verhandlung spart Geld und riskiert Absagen.</p></div>
+          <span class="tag">${state.scout.batch.length} Profile</span>
+        </div>
+        <div class="buy-row">
+          <div class="cost-list">${formatCosts(costs)}</div>
+          <button data-action="scout-refresh">Weiter scouten</button>
+        </div>
+      </article>` + candidates;
+    }
+
+    function candidateCard(def) {
+      const strengthText = def.revealed ? Big.fmt(Big.from(def.actual)) : Big.fmt(Big.from(def.min)) + "-" + Big.fmt(Big.from(def.max));
+      const risk = Math.round(def.risk * 100);
       return `<article class="card player">
         <div class="card-head">
-          <div><h3>${def.name}</h3><p class="muted">${def.desc}</p></div>
-          <span class="tag">${active ? "Im Kader" : def.tag}</span>
+          <div><h3>${def.name}</h3><p class="muted">${def.pos} | ${def.trait} | Scout-Sicherheit ${def.certainty}%</p></div>
+          <span class="tag">${def.revealed ? "Aufgedeckt" : "Spanne"}</span>
         </div>
-        <p class="muted">+${Big.fmt(Big.from(def.strength))} Staerke, +${Big.fmt(Big.from(def.fans))} Fans, +${Big.fmt(Big.from(def.brand))} Marke</p>
-        <div class="buy-row">
-          <span class="muted">Handgeld: ${Big.fmt(Big.from(def.cost), " EUR")}</span>
-          <button data-action="player" data-id="${def.id}" ${active ? "disabled" : ""}>Verpflichten</button>
+        <p class="muted">Staerke ${strengthText}, +${Big.fmt(Big.from(def.fans))} Fans, +${Big.fmt(Big.from(def.brand))} Marke, Risiko ${risk}%</p>
+        <div class="choice-row">
+          <button data-action="trial" data-id="${def.id}" ${def.revealed ? "disabled" : ""}>Probetraining</button>
+          <button data-action="player-safe" data-id="${def.id}">Sicher ${Big.fmt(Big.from(def.cost), " EUR")}</button>
+          <button data-action="player-hard" data-id="${def.id}">Hart ${Big.fmt(Big.from(Math.floor(def.cost * .72)), " EUR")}</button>
         </div>
       </article>`;
     }
@@ -1395,15 +1561,19 @@
     function renderCompetitions() {
       document.getElementById("competitionList").innerHTML = competitionDefs.map((def, index) => {
         const won = state.leagueIndex > index;
-        const ready = Big.cmp(state.strength, Big.from(def.need)) >= 0;
         const progress = Math.min(100, Big.toNumber(Big.mul(Big.from(100), Big.from(Big.toNumber(state.strength) / def.need))));
+        const plans = matchPlans.map(plan => {
+          const chance = Math.round(competitionChance(def, { ...plan, variance: 0 }) * 100);
+          return `<button data-action="competition" data-id="${def.id}" data-plan="${plan.id}" ${won ? "disabled" : ""}>${plan.name}<br>${chance}%</button>`;
+        }).join("");
         return `<article class="card">
           <div class="card-head">
             <div><h3>${def.name}</h3><p class="muted">Preisgeld ${Big.fmt(Big.from(def.prize), " EUR")} und ${Big.fmt(Big.from(def.brand))} Marke.</p></div>
             <span class="tag">${won ? "Gewonnen" : Big.fmt(Big.from(def.need)) + " STA"}</span>
           </div>
           <div class="bar"><span style="width:${won ? 100 : progress}%"></span></div>
-          <button data-action="competition" data-id="${def.id}" ${won || !ready ? "disabled" : ""}>Antreten</button>
+          <p class="muted">Matchplan waehlen: sicherer Aufbau, Spektakel oder mutiger Underdog-Coup.</p>
+          <div class="choice-row">${plans}</div>
         </article>`;
       }).join("");
     }
@@ -1422,8 +1592,20 @@
         button.disabled = !canPay(cost(def, state.upgrades[def.id] || 0));
       });
       document.querySelectorAll("button[data-action='player']").forEach(button => {
-        const def = playerDefs.find(item => item.id === button.dataset.id);
-        button.disabled = state.players[def.id] || !canPay(Big.from(def.cost));
+        button.disabled = true;
+      });
+      document.querySelectorAll("button[data-action='player-safe']").forEach(button => {
+        const def = state.scout.batch.find(item => item.id === button.dataset.id);
+        button.disabled = !def || state.players[def.id] || !canPay(Big.from(def.cost));
+      });
+      document.querySelectorAll("button[data-action='player-hard']").forEach(button => {
+        const def = state.scout.batch.find(item => item.id === button.dataset.id);
+        button.disabled = !def || state.players[def.id] || !canPay(Big.from(Math.floor(def.cost * .72)));
+      });
+      document.querySelectorAll("button[data-action='trial']").forEach(button => {
+        const def = state.scout.batch.find(item => item.id === button.dataset.id);
+        const costs = def ? { talents: 2 + matchAutoLevel(), euro: Math.max(120, Math.floor(def.cost * .12)) } : {};
+        button.disabled = !def || def.revealed || !canPayCosts(costs);
       });
       document.querySelectorAll("button[data-action='trainer']").forEach(button => {
         const def = trainerDefs.find(item => item.id === button.dataset.id);
@@ -1435,12 +1617,14 @@
       });
       document.querySelectorAll("button[data-action='competition']").forEach(button => {
         const index = competitionDefs.findIndex(item => item.id === button.dataset.id);
-        const def = competitionDefs[index];
-        button.disabled = state.leagueIndex > index || Big.cmp(state.strength, Big.from(def.need)) < 0;
+        button.disabled = state.leagueIndex > index;
       });
       document.querySelectorAll("button[data-action='automation']").forEach(button => {
         const def = nextAutomationDef();
         button.disabled = !def || !canPayCosts(def.costs);
+      });
+      document.querySelectorAll("button[data-action='scout-refresh']").forEach(button => {
+        button.disabled = !canPayCosts(scoutCost());
       });
     }
 
@@ -1552,10 +1736,13 @@
       const action = button.dataset.action;
       if (action === "line") buyLine(id);
       if (action === "upgrade") buyUpgrade(id);
-      if (action === "player") hirePlayer(id);
+      if (action === "player-safe") recruitCandidate(id, "safe");
+      if (action === "player-hard") recruitCandidate(id, "hard");
+      if (action === "trial") trialCandidate(id);
+      if (action === "scout-refresh") refreshScouting();
       if (action === "trainer") hireTrainer(id);
       if (action === "contract") signContract(id);
-      if (action === "competition") playCompetition(id);
+      if (action === "competition") playCompetition(id, button.dataset.plan);
       if (action === "automation") buyAutomation();
     });
 
