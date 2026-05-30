@@ -50,6 +50,24 @@
       transition: transform .16s ease, border-color .16s ease, background .16s ease;
     }
 
+    .button-link {
+      display: grid;
+      place-items: center;
+      min-height: 34px;
+      padding: 7px 10px;
+      border: 1px solid rgba(255, 255, 255, .12);
+      border-radius: 8px;
+      color: var(--text);
+      background: linear-gradient(180deg, #244738, #173127);
+      text-decoration: none;
+      transition: transform .16s ease, border-color .16s ease;
+    }
+
+    .button-link:hover {
+      transform: translateY(-1px);
+      border-color: rgba(183, 227, 90, .75);
+    }
+
     button:hover:not(:disabled) {
       transform: translateY(-1px);
       border-color: rgba(183, 227, 90, .75);
@@ -537,6 +555,7 @@
       <div class="save-panel">
         <button id="saveBtn">Speichern</button>
         <button id="exportBtn">Export</button>
+        <a class="button-link" href="readme.txt" target="_blank" rel="noopener">Anleitung</a>
         <span class="muted" id="saveStatus">Autosave bereit</span>
       </div>
     </section>
