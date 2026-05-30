@@ -99,6 +99,8 @@ Der Fortschrittsbalken unter dem Heimspiel-Button zeigt entweder den manuellen C
 
 Visualisierungen
 ----------------
+Die Waehrungsleiste bleibt beim Scrollen oben arretiert. Sie ist absichtlich kompakt, damit Euro, Fans, Teamstaerke, Markenwert, Talente und Legendenpunkte auch auf dem Handy sichtbar bleiben.
+
 Oben zeigen die Ressourcenkarten nicht nur Zahlen, sondern auch die Rolle der Ebene:
 
 - Gelb: Geld und Liquiditaet.
