@@ -1706,33 +1706,37 @@
       ctx.fillStyle = sky;
       ctx.fillRect(0, 0, width, height);
 
-      ctx.fillStyle = "rgba(255,255,255,.06)";
-      for (let i = 0; i < 7; i++) {
+      ctx.fillStyle = "rgba(255,255,255,.045)";
+      for (let i = 0; i < 6; i++) {
         ctx.beginPath();
-        ctx.arc(110 + i * 130, 56 + Math.sin(Date.now() / 900 + i) * 8, 32 + i % 3 * 5, 0, Math.PI * 2);
+        ctx.arc(150 + i * 135, 58 + Math.sin(Date.now() / 1100 + i) * 5, 30 + i % 3 * 5, 0, Math.PI * 2);
         ctx.fill();
       }
 
-      drawStand(82, 130, 300, 210, fill, "#2e5b7a");
-      drawStand(578, 130, 300, 210, fill, "#703f63");
-      drawStand(238, 82, 484, 130, fill, "#6b6740");
+      drawStand(74, 156, 248, 180, fill, "#244f68", "Heimtribuene");
+      drawStand(638, 156, 248, 180, fill, "#65335e", "Gaesteblock");
+      drawStand(244, 88, 472, 132, fill, "#6f6334", "Haupttribuene");
 
       ctx.fillStyle = "#164d2b";
-      roundedRect(195, 278, 570, 210, 10);
+      roundedRect(212, 292, 536, 186, 10);
       ctx.fill();
+      ctx.fillStyle = "rgba(255,255,255,.05)";
+      for (let i = 0; i < 6; i++) {
+        ctx.fillRect(212, 308 + i * 27, 536, 12);
+      }
       ctx.strokeStyle = "rgba(255,255,255,.65)";
       ctx.lineWidth = 3;
-      ctx.strokeRect(250, 312, 460, 138);
+      ctx.strokeRect(262, 324, 436, 122);
       ctx.beginPath();
-      ctx.arc(480, 381, 42, 0, Math.PI * 2);
+      ctx.arc(480, 385, 36, 0, Math.PI * 2);
       ctx.stroke();
       ctx.beginPath();
-      ctx.moveTo(480, 312);
-      ctx.lineTo(480, 450);
+      ctx.moveTo(480, 324);
+      ctx.lineTo(480, 446);
       ctx.stroke();
 
       ctx.fillStyle = `rgba(183, 227, 90, ${.15 + mood * .38})`;
-      ctx.fillRect(195, 278, 570, 210);
+      ctx.fillRect(212, 292, 536, 186);
 
       ctx.fillStyle = "#edf7f1";
       ctx.font = "700 26px Inter, sans-serif";
@@ -1740,24 +1744,69 @@
       ctx.font = "500 16px Inter, sans-serif";
       ctx.fillStyle = "#a8beb3";
       ctx.fillText("Auslastung " + Math.round(fill * 100) + "% | Stimmung " + Math.round(state.mood * 100) + "%", 48, 80);
+      drawOccupancyGauge(814, 44, fill);
     }
 
-    function drawStand(x, y, w, h, fill, color) {
+    function drawStand(x, y, w, h, fill, color, label) {
       ctx.fillStyle = "rgba(0,0,0,.28)";
       roundedRect(x + 10, y + 12, w, h, 8);
       ctx.fill();
       ctx.fillStyle = color;
       roundedRect(x, y, w, h, 8);
       ctx.fill();
-      const rows = 6;
-      const cols = 18;
-      let people = Math.floor(rows * cols * fill);
+      ctx.fillStyle = "rgba(255,255,255,.16)";
+      ctx.font = "700 13px Inter, sans-serif";
+      ctx.fillText(label, x + 16, y + 24);
+
+      const rows = 5;
+      const cols = 10;
+      const total = rows * cols;
+      const filled = Math.round(total * fill);
+      let seat = 0;
       for (let r = 0; r < rows; r++) {
         for (let c = 0; c < cols; c++) {
-          ctx.fillStyle = people-- > 0 ? (c % 3 === 0 ? "#f3c95b" : c % 3 === 1 ? "#4bd37b" : "#edf7f1") : "rgba(255,255,255,.12)";
-          ctx.fillRect(x + 18 + c * ((w - 36) / cols), y + 20 + r * ((h - 40) / rows), 8, 8);
+          const px = x + 24 + c * ((w - 48) / cols);
+          const py = y + h - 28 - r * ((h - 58) / rows);
+          const occupied = seat < filled;
+          drawSeat(px, py, occupied, c + r);
+          seat++;
         }
       }
+    }
+
+    function drawSeat(x, y, occupied, seed) {
+      ctx.fillStyle = occupied ? ["#f3c95b", "#4bd37b", "#68a7ee", "#edf7f1"][seed % 4] : "rgba(255,255,255,.16)";
+      ctx.beginPath();
+      ctx.arc(x + 5, y, occupied ? 4.4 : 3, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = occupied ? "rgba(255,255,255,.88)" : "rgba(255,255,255,.08)";
+      roundedRect(x, y + 6, 10, occupied ? 10 : 5, 4);
+      ctx.fill();
+    }
+
+    function drawOccupancyGauge(x, y, fill) {
+      const pct = Math.round(fill * 100);
+      ctx.fillStyle = "rgba(9, 24, 19, .72)";
+      roundedRect(x - 12, y - 14, 112, 86, 8);
+      ctx.fill();
+      ctx.strokeStyle = "rgba(255,255,255,.14)";
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.strokeStyle = "rgba(255,255,255,.16)";
+      ctx.lineWidth = 9;
+      ctx.arc(x + 24, y + 26, 24, -Math.PI / 2, Math.PI * 1.5);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.strokeStyle = "#b7e35a";
+      ctx.arc(x + 24, y + 26, 24, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * fill);
+      ctx.stroke();
+      ctx.fillStyle = "#edf7f1";
+      ctx.font = "800 17px Inter, sans-serif";
+      ctx.fillText(pct + "%", x + 5, y + 32);
+      ctx.fillStyle = "#a8beb3";
+      ctx.font = "600 11px Inter, sans-serif";
+      ctx.fillText("Tribuenen", x + 60, y + 20);
+      ctx.fillText("belegt", x + 60, y + 36);
     }
 
     function roundedRect(x, y, w, h, r) {

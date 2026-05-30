@@ -117,6 +117,8 @@ Unter dem Stadion liegen vier Mini-Visualisierungen. Sie sollen die Ebenen unter
 - Sport-Ebene: Druck, Staerke und Wettbewerb.
 - Marken-Ebene: Sponsoren, Medien und grosse Hebel.
 
+In der Stadiongrafik zeigen die Tribuenen direkt die Auslastung: leere Sitze sind blass, belegte Plaetze werden als kleine Fans dargestellt. Der Ring rechts im Stadionbild fasst die Auslastung nochmal als Prozentwert zusammen.
+
 
 Speichern
 ---------
