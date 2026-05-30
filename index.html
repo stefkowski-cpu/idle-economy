@@ -1,0 +1,1250 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Idle Economy FC</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #07130f;
+      --panel: #10211b;
+      --panel-2: #162c24;
+      --line: #29483d;
+      --text: #edf7f1;
+      --muted: #a8beb3;
+      --green: #4bd37b;
+      --lime: #b7e35a;
+      --gold: #f3c95b;
+      --red: #ee6868;
+      --blue: #68a7ee;
+      --shadow: 0 18px 45px rgba(0, 0, 0, .34);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background:
+        radial-gradient(circle at 24% 12%, rgba(75, 211, 123, .14), transparent 32rem),
+        linear-gradient(135deg, #07130f 0%, #0a1714 45%, #0f1c23 100%);
+      color: var(--text);
+    }
+
+    button, input, textarea {
+      font: inherit;
+    }
+
+    button {
+      border: 1px solid rgba(255, 255, 255, .12);
+      border-radius: 8px;
+      color: var(--text);
+      background: linear-gradient(180deg, #244738, #173127);
+      min-height: 42px;
+      padding: 10px 14px;
+      cursor: pointer;
+      transition: transform .16s ease, border-color .16s ease, background .16s ease;
+    }
+
+    button:hover:not(:disabled) {
+      transform: translateY(-1px);
+      border-color: rgba(183, 227, 90, .75);
+    }
+
+    button:disabled {
+      cursor: not-allowed;
+      opacity: .48;
+    }
+
+    input, textarea {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #091813;
+      color: var(--text);
+      padding: 10px 12px;
+    }
+
+    textarea {
+      min-height: 84px;
+      resize: vertical;
+    }
+
+    .app {
+      width: min(1440px, 100%);
+      margin: 0 auto;
+      padding: 18px;
+    }
+
+    .topbar {
+      display: grid;
+      grid-template-columns: minmax(220px, 1.1fr) minmax(0, 2.4fr) auto;
+      gap: 14px;
+      align-items: stretch;
+      margin-bottom: 16px;
+    }
+
+    .brand, .resource-strip, .save-panel, .panel, .card {
+      border: 1px solid rgba(255, 255, 255, .1);
+      background: rgba(16, 33, 27, .86);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(14px);
+    }
+
+    .brand {
+      border-radius: 8px;
+      padding: 14px;
+    }
+
+    .club-row {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .crest {
+      display: grid;
+      width: 48px;
+      height: 48px;
+      place-items: center;
+      border-radius: 8px;
+      background: linear-gradient(145deg, #2f8f57, #13281f 60%, #e3bd4d);
+      color: white;
+      font-weight: 900;
+      letter-spacing: 0;
+      box-shadow: inset 0 0 0 2px rgba(255, 255, 255, .18);
+    }
+
+    h1, h2, h3, p {
+      margin: 0;
+    }
+
+    h1 {
+      font-size: clamp(1.15rem, 1.8vw, 1.75rem);
+      line-height: 1.05;
+    }
+
+    h2 {
+      font-size: 1rem;
+      margin-bottom: 12px;
+    }
+
+    h3 {
+      font-size: .95rem;
+    }
+
+    .muted {
+      color: var(--muted);
+      font-size: .88rem;
+    }
+
+    .resource-strip {
+      border-radius: 8px;
+      display: grid;
+      grid-template-columns: repeat(6, minmax(112px, 1fr));
+      gap: 1px;
+      overflow: hidden;
+      background: rgba(41, 72, 61, .75);
+    }
+
+    .resource {
+      min-width: 0;
+      background: rgba(16, 33, 27, .92);
+      padding: 12px;
+    }
+
+    .resource span {
+      display: block;
+      color: var(--muted);
+      font-size: .76rem;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+      margin-bottom: 5px;
+    }
+
+    .resource strong {
+      display: block;
+      overflow-wrap: anywhere;
+      font-size: clamp(.95rem, 1.3vw, 1.18rem);
+    }
+
+    .save-panel {
+      border-radius: 8px;
+      padding: 12px;
+      min-width: 170px;
+      display: grid;
+      gap: 8px;
+    }
+
+    .save-panel button {
+      min-height: 34px;
+      padding: 7px 10px;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(300px, .85fr) minmax(430px, 1.3fr) minmax(320px, .95fr);
+      gap: 16px;
+      align-items: start;
+    }
+
+    .panel {
+      border-radius: 8px;
+      padding: 14px;
+      margin-bottom: 16px;
+    }
+
+    .hero-action {
+      display: grid;
+      gap: 12px;
+    }
+
+    .big-button {
+      min-height: 82px;
+      background: linear-gradient(135deg, #3eb96d, #25533f);
+      border-color: rgba(183, 227, 90, .48);
+      font-weight: 800;
+      font-size: 1.05rem;
+    }
+
+    .metric-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+    }
+
+    .metric {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(9, 24, 19, .62);
+      padding: 10px;
+      min-height: 76px;
+    }
+
+    .metric span {
+      display: block;
+      color: var(--muted);
+      font-size: .78rem;
+      margin-bottom: 6px;
+    }
+
+    .metric strong {
+      display: block;
+      overflow-wrap: anywhere;
+      font-size: 1.12rem;
+    }
+
+    .stadium-panel {
+      padding: 0;
+      overflow: hidden;
+    }
+
+    .stadium-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 14px 0;
+    }
+
+    canvas {
+      display: block;
+      width: 100%;
+      aspect-ratio: 16 / 9;
+      background: linear-gradient(180deg, #142a31, #092016 58%, #0b2417);
+    }
+
+    .tabs {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .tab {
+      min-height: 38px;
+      padding: 8px 10px;
+      background: #0b1b16;
+    }
+
+    .tab.active {
+      background: linear-gradient(180deg, #3a6f54, #1d382d);
+      border-color: rgba(183, 227, 90, .58);
+    }
+
+    .list {
+      display: grid;
+      gap: 10px;
+    }
+
+    .card {
+      border-radius: 8px;
+      padding: 12px;
+      display: grid;
+      gap: 10px;
+    }
+
+    .card-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      align-items: start;
+    }
+
+    .tag {
+      border: 1px solid rgba(255, 255, 255, .13);
+      border-radius: 999px;
+      padding: 4px 8px;
+      font-size: .74rem;
+      color: var(--muted);
+      white-space: nowrap;
+      background: rgba(255, 255, 255, .04);
+    }
+
+    .buy-row {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .bar {
+      height: 10px;
+      border-radius: 999px;
+      overflow: hidden;
+      background: #08130f;
+      border: 1px solid rgba(255, 255, 255, .09);
+    }
+
+    .bar > span {
+      display: block;
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, var(--green), var(--lime));
+    }
+
+    .feed {
+      max-height: 230px;
+      overflow: auto;
+      display: grid;
+      gap: 8px;
+      padding-right: 4px;
+    }
+
+    .feed-item {
+      border-left: 3px solid var(--green);
+      padding: 8px 10px;
+      background: rgba(255, 255, 255, .045);
+      border-radius: 0 8px 8px 0;
+      color: var(--muted);
+      font-size: .86rem;
+    }
+
+    .contract {
+      border-left: 4px solid var(--gold);
+    }
+
+    .player {
+      border-left: 4px solid var(--blue);
+    }
+
+    .trainer {
+      border-left: 4px solid var(--green);
+    }
+
+    .danger {
+      background: linear-gradient(180deg, #5a2626, #331919);
+      border-color: rgba(238, 104, 104, .45);
+    }
+
+    .split {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .footer-tools {
+      display: grid;
+      gap: 10px;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    @media (max-width: 1120px) {
+      .topbar, .layout {
+        grid-template-columns: 1fr;
+      }
+
+      .resource-strip {
+        grid-template-columns: repeat(3, 1fr);
+      }
+    }
+
+    @media (max-width: 620px) {
+      .app {
+        padding: 10px;
+      }
+
+      .resource-strip, .metric-grid, .split, .tabs {
+        grid-template-columns: 1fr;
+      }
+
+      .buy-row {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <section class="topbar">
+      <div class="brand">
+        <div class="club-row">
+          <div class="crest">FC</div>
+          <div>
+            <h1 id="clubName">Idle Economy FC</h1>
+            <p class="muted" id="leagueName">Dorfverein - Bolzplatzliga</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="resource-strip" id="resources"></div>
+
+      <div class="save-panel">
+        <button id="saveBtn">Speichern</button>
+        <button id="exportBtn">Export</button>
+        <span class="muted" id="saveStatus">Autosave bereit</span>
+      </div>
+    </section>
+
+    <section class="layout">
+      <aside>
+        <div class="panel hero-action">
+          <h2>Spieltag</h2>
+          <button class="big-button" id="matchBtn">Heimspiel ausrichten</button>
+          <div class="metric-grid">
+            <div class="metric">
+              <span>Einnahmen pro Sekunde</span>
+              <strong id="eps">0 EUR/s</strong>
+            </div>
+            <div class="metric">
+              <span>Fans pro Sekunde</span>
+              <strong id="fps">0 Fans/s</strong>
+            </div>
+            <div class="metric">
+              <span>Zuschauer im Stadion</span>
+              <strong id="attendance">0 / 250</strong>
+            </div>
+            <div class="metric">
+              <span>Stimmung</span>
+              <strong id="mood">100%</strong>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <h2>Clubentwicklung</h2>
+          <div class="list" id="upgradeList"></div>
+        </div>
+
+        <div class="panel">
+          <h2>Vereinsfunk</h2>
+          <div class="feed" id="feed"></div>
+        </div>
+      </aside>
+
+      <section>
+        <div class="panel stadium-panel">
+          <div class="stadium-header">
+            <div>
+              <h2>Stadion und Fanwelle</h2>
+              <p class="muted" id="stadiumLine">250 Plaetze, Rasen frisch gewalzt</p>
+            </div>
+            <span class="tag" id="phaseTag">Phase 1</span>
+          </div>
+          <canvas id="stadium" width="960" height="540"></canvas>
+        </div>
+
+        <div class="panel">
+          <div class="tabs" id="tabs">
+            <button class="tab active" data-tab="lines">Produktion</button>
+            <button class="tab" data-tab="squad">Kader</button>
+            <button class="tab" data-tab="market">Vertraege</button>
+          </div>
+          <div class="list" id="tabContent"></div>
+        </div>
+      </section>
+
+      <aside>
+        <div class="panel">
+          <h2>Wettbewerbe</h2>
+          <div class="list" id="competitionList"></div>
+        </div>
+
+        <div class="panel">
+          <h2>Legendenraum</h2>
+          <div class="card">
+            <div class="card-head">
+              <div>
+                <h3>Prestige</h3>
+                <p class="muted">Ab 1e9 Markenwert wird ein Neustart mit Legendenpunkten moeglich.</p>
+              </div>
+              <span class="tag" id="legendGain">+0 LP</span>
+            </div>
+            <button id="prestigeBtn" disabled>Legendenlauf starten</button>
+          </div>
+        </div>
+
+        <div class="panel footer-tools">
+          <h2>Speicherstand</h2>
+          <textarea id="saveBox" placeholder="Export erscheint hier oder Import hier einfuegen"></textarea>
+          <div class="split">
+            <button id="importBtn">Import</button>
+            <button class="danger" id="resetBtn">Reset</button>
+          </div>
+        </div>
+      </aside>
+    </section>
+  </main>
+
+  <script>
+    const SAVE_KEY = "idleEconomyFcSaveV1";
+    const resourcesEl = document.getElementById("resources");
+    const canvas = document.getElementById("stadium");
+    const ctx = canvas.getContext("2d");
+    let activeTab = "lines";
+    let lastTick = performance.now();
+    let lastSave = Date.now();
+
+    const Big = {
+      zero: () => ({ m: 0, e: 0 }),
+      one: () => ({ m: 1, e: 0 }),
+      from(value) {
+        if (typeof value === "object" && value && "m" in value) return this.norm({ m: value.m, e: value.e });
+        if (!Number.isFinite(value) || value <= 0) return this.zero();
+        const e = Math.floor(Math.log10(value));
+        return this.norm({ m: value / Math.pow(10, e), e });
+      },
+      norm(x) {
+        if (!x || !Number.isFinite(x.m) || x.m <= 0) return { m: 0, e: 0 };
+        let m = x.m;
+        let e = x.e || 0;
+        while (m >= 10) {
+          m /= 10;
+          e += 1;
+        }
+        while (m < 1) {
+          m *= 10;
+          e -= 1;
+        }
+        return { m, e };
+      },
+      add(a, b) {
+        a = this.from(a); b = this.from(b);
+        if (a.m === 0) return b;
+        if (b.m === 0) return a;
+        if (a.e < b.e) [a, b] = [b, a];
+        const diff = a.e - b.e;
+        if (diff > 15) return a;
+        return this.norm({ m: a.m + b.m / Math.pow(10, diff), e: a.e });
+      },
+      sub(a, b) {
+        a = this.from(a); b = this.from(b);
+        if (this.cmp(a, b) < 0) return this.zero();
+        const diff = a.e - b.e;
+        if (diff > 15) return a;
+        return this.norm({ m: a.m - b.m / Math.pow(10, diff), e: a.e });
+      },
+      mul(a, b) {
+        a = this.from(a); b = this.from(b);
+        if (a.m === 0 || b.m === 0) return this.zero();
+        return this.norm({ m: a.m * b.m, e: a.e + b.e });
+      },
+      scale(a, n) {
+        a = this.from(a);
+        if (a.m === 0 || n <= 0) return this.zero();
+        const e = Math.floor(Math.log10(n));
+        return this.norm({ m: a.m * (n / Math.pow(10, e)), e: a.e + e });
+      },
+      pow(base, exp) {
+        if (base <= 0) return this.zero();
+        const log = Math.log10(base) * exp;
+        const e = Math.floor(log);
+        return this.norm({ m: Math.pow(10, log - e), e });
+      },
+      cmp(a, b) {
+        a = this.from(a); b = this.from(b);
+        if (a.m === 0 && b.m === 0) return 0;
+        if (a.e !== b.e) return a.e > b.e ? 1 : -1;
+        return a.m === b.m ? 0 : (a.m > b.m ? 1 : -1);
+      },
+      toNumber(a) {
+        a = this.from(a);
+        if (a.m === 0) return 0;
+        if (a.e > 308) return Number.MAX_VALUE;
+        return a.m * Math.pow(10, a.e);
+      },
+      fmt(a, suffix = "") {
+        a = this.from(a);
+        if (a.m === 0) return "0" + suffix;
+        const names = ["", "K", "M", "B", "T", "Qa", "Qi", "Sx", "Sp", "Oc", "No", "Dc"];
+        if (a.e < 33) {
+          const tier = Math.floor(a.e / 3);
+          const scaled = a.m * Math.pow(10, a.e - tier * 3);
+          return trim(scaled, tier === 0 ? 0 : 2) + names[tier] + suffix;
+        }
+        return trim(a.m, 2) + "e" + a.e + suffix;
+      }
+    };
+
+    const lineDefs = [
+      { id: "pitch", name: "Bolzplatz", tag: "Tickets", desc: "Eintritt, Bratwurstduft und die ersten Stammgaeste.", base: 25, scale: 1.16, out: { euro: 1.8, fans: .08 } },
+      { id: "youth", name: "Jugendteam", tag: "Talente", desc: "Eltern fahren, Kinder traeumen, Scouts notieren.", base: 150, scale: 1.18, out: { talents: .05, strength: .015 } },
+      { id: "shop", name: "Fanshop", tag: "Merch", desc: "Schals, Trikots und Tassen mit Clubwappen.", base: 900, scale: 1.2, out: { euro: 9, brand: .04 } },
+      { id: "media", name: "Medienbuero", tag: "Marke", desc: "Highlights, Interviews und die ersten viralen Clips.", base: 6500, scale: 1.22, out: { brand: .22, fans: .35 } },
+      { id: "data", name: "Datenlabor", tag: "Multiplikator", desc: "Analysen machen jede Abteilung ein bisschen klueger.", base: 45000, scale: 1.25, out: { strength: .22, brand: .18 } },
+      { id: "global", name: "Globales Netzwerk", tag: "Spaetspiel", desc: "Partnerakademien, Tourneen und Fans auf jedem Kontinent.", base: 2_000_000, scale: 1.3, out: { euro: 1500, fans: 18, brand: 5 } }
+    ];
+
+    const upgradeDefs = [
+      { id: "stadium", name: "Stadionausbau", desc: "Mehr Plaetze fuer mehr Tickets.", base: 120, scale: 1.55, effect: "Kapazitaet +250 pro Stufe" },
+      { id: "catering", name: "Catering", desc: "Mehr Umsatz pro Zuschauer.", base: 400, scale: 1.62, effect: "Ticketerloese +12%" },
+      { id: "academy", name: "Akademie", desc: "Talente entwickeln sich schneller.", base: 2500, scale: 1.7, effect: "Talente und Teamstaerke +18%" },
+      { id: "marketing", name: "Marketing", desc: "Fans werden zu Marke.", base: 8000, scale: 1.74, effect: "Fans und Markenwert +16%" },
+      { id: "automation", name: "Automatisierung", desc: "Bessere Prozesse, weniger Leerlauf.", base: 32000, scale: 1.82, effect: "Alle Produktion +10%" }
+    ];
+
+    const playerDefs = [
+      { id: "keeper", name: "Mara 'Mauer' Klein", tag: "Tor", cost: 600, desc: "Haelt Punkte fest und bringt Ruhe.", strength: 8, fans: 4, brand: .5 },
+      { id: "wing", name: "Dario Blitz", tag: "Fluegel", cost: 3800, desc: "Tempo, Tricks und Trikotverkaeufe.", strength: 24, fans: 32, brand: 3 },
+      { id: "ten", name: "Noah Spielmacher", tag: "Zehn", cost: 24000, desc: "Macht Chancen aus Nichts.", strength: 120, fans: 160, brand: 16 },
+      { id: "star", name: "Lina Weltklasse", tag: "Star", cost: 260000, desc: "Hebt den Club in jede Sportsendung.", strength: 900, fans: 1200, brand: 140 }
+    ];
+
+    const trainerDefs = [
+      { id: "junior", name: "Jugendtrainer", tag: "Talente", cost: 1200, desc: "Findet Rohdiamanten frueher.", mult: "academy", bonus: .18 },
+      { id: "tactic", name: "Taktiktrainer", tag: "Staerke", cost: 9000, desc: "Aus elf Spielern wird ein System.", mult: "strength", bonus: .22 },
+      { id: "mediaCoach", name: "Mediencoach", tag: "Marke", cost: 42000, desc: "Jedes Interview sitzt.", mult: "brand", bonus: .2 },
+      { id: "head", name: "Cheftrainer", tag: "Global", cost: 350000, desc: "Gibt dem ganzen Verein Richtung.", mult: "all", bonus: .15 }
+    ];
+
+    const contractDefs = [
+      { id: "local", name: "Lokaler Sponsor", tag: "Woche", cost: 500, desc: "Baeckerei auf der Bande.", euro: 8, needs: { brand: 0 } },
+      { id: "shirt", name: "Trikotsponsor", tag: "Trikot", cost: 12000, desc: "Zahlt mit jedem Fan mehr.", euro: 95, needs: { brand: 40 } },
+      { id: "tv", name: "TV-Rechte", tag: "Medien", cost: 180000, desc: "Die Liga schaut zu.", euro: 1100, needs: { brand: 900 } },
+      { id: "stream", name: "Streaming-Plattform", tag: "Global", cost: 2600000, desc: "Jeder Spieltag wird ein Ereignis.", euro: 15000, needs: { brand: 12000 } }
+    ];
+
+    const competitionDefs = [
+      { id: "city", name: "Stadtliga", need: 80, prize: 5000, brand: 20, next: "Regionalliga" },
+      { id: "regional", name: "Regionalliga", need: 600, prize: 50000, brand: 180, next: "Nationale Liga" },
+      { id: "national", name: "Nationale Liga", need: 5000, prize: 800000, brand: 1600, next: "Europapokal" },
+      { id: "euro", name: "Europapokal", need: 45000, prize: 18000000, brand: 18000, next: "Weltturnier" },
+      { id: "world", name: "Weltturnier", need: 500000, prize: 650000000, brand: 350000, next: "Galaktische Liga" }
+    ];
+
+    const defaultState = () => ({
+      euro: Big.from(20),
+      fans: Big.from(12),
+      strength: Big.from(5),
+      brand: Big.from(0),
+      talents: Big.from(0),
+      legends: Big.zero(),
+      mood: 1,
+      leagueIndex: 0,
+      lines: Object.fromEntries(lineDefs.map(def => [def.id, 0])),
+      upgrades: Object.fromEntries(upgradeDefs.map(def => [def.id, 0])),
+      players: {},
+      trainers: {},
+      contracts: {},
+      log: ["Der Verein ist gegruendet. Der Platz ist klein, aber die Kasse lebt."]
+    });
+
+    let state = loadState();
+
+    function trim(value, digits) {
+      return Number(value).toLocaleString("de-DE", {
+        maximumFractionDigits: digits,
+        minimumFractionDigits: value < 10 && digits > 0 ? 1 : 0
+      });
+    }
+
+    function addLog(text) {
+      state.log.unshift(text);
+      state.log = state.log.slice(0, 18);
+    }
+
+    function cost(def, level) {
+      return Big.mul(Big.from(def.base), Big.pow(def.scale, level));
+    }
+
+    function canPay(amount) {
+      return Big.cmp(state.euro, amount) >= 0;
+    }
+
+    function pay(amount) {
+      if (!canPay(amount)) return false;
+      state.euro = Big.sub(state.euro, amount);
+      return true;
+    }
+
+    function upgradeLevel(id) {
+      return state.upgrades[id] || 0;
+    }
+
+    function capNumber(value, max) {
+      return Math.min(Big.toNumber(value), max);
+    }
+
+    function multipliers() {
+      const auto = 1 + upgradeLevel("automation") * .1;
+      const catering = 1 + upgradeLevel("catering") * .12;
+      const academy = 1 + upgradeLevel("academy") * .18 + trainerBonus("academy");
+      const marketing = 1 + upgradeLevel("marketing") * .16;
+      const allTrainer = 1 + trainerBonus("all");
+      const legend = 1 + Math.log10(1 + Big.toNumber(state.legends)) * .35;
+      return {
+        euro: auto * catering * allTrainer * legend,
+        fans: auto * marketing * allTrainer * legend,
+        strength: auto * academy * (1 + trainerBonus("strength")) * allTrainer * legend,
+        brand: auto * marketing * (1 + trainerBonus("brand")) * allTrainer * legend,
+        talents: auto * academy * allTrainer * legend
+      };
+    }
+
+    function trainerBonus(type) {
+      return trainerDefs.reduce((sum, trainer) => {
+        if (!state.trainers[trainer.id]) return sum;
+        return trainer.mult === type ? sum + trainer.bonus : sum;
+      }, 0);
+    }
+
+    function rates() {
+      const mult = multipliers();
+      const out = { euro: Big.zero(), fans: Big.zero(), strength: Big.zero(), brand: Big.zero(), talents: Big.zero() };
+      lineDefs.forEach(def => {
+        const level = state.lines[def.id] || 0;
+        Object.entries(def.out).forEach(([key, value]) => {
+          out[key] = Big.add(out[key], Big.from(value * level * mult[key]));
+        });
+      });
+
+      Object.entries(state.contracts).forEach(([id, active]) => {
+        if (!active) return;
+        const def = contractDefs.find(item => item.id === id);
+        out.euro = Big.add(out.euro, Big.from(def.euro * mult.euro));
+      });
+
+      out.euro = Big.scale(out.euro, state.mood);
+      return out;
+    }
+
+    function stadiumCapacity() {
+      return Big.from(250 + upgradeLevel("stadium") * 250);
+    }
+
+    function attendance() {
+      const cap = stadiumCapacity();
+      const fanPull = Big.scale(state.fans, .72 + state.mood * .28);
+      return Big.cmp(fanPull, cap) < 0 ? fanPull : cap;
+    }
+
+    function phase() {
+      const fans = Big.toNumber(state.fans);
+      if (fans >= 1_000_000) return ["Phase 5", "Fussball-Multiversum"];
+      if (fans >= 100_000) return ["Phase 4", "Globaler Konzern"];
+      if (fans >= 10_000) return ["Phase 3", "Nationale Macht"];
+      if (fans >= 750) return ["Phase 2", "Profibetrieb"];
+      return ["Phase 1", "Dorfverein"];
+    }
+
+    function runMatch() {
+      const crowd = attendance();
+      const ticket = 7.5 * (1 + upgradeLevel("catering") * .12);
+      const money = Big.scale(crowd, ticket * state.mood);
+      const fanGain = Big.add(Big.from(8), Big.scale(state.strength, .05 + state.mood * .03));
+      const brandGain = Big.scale(fanGain, .045 + state.leagueIndex * .012);
+      state.euro = Big.add(state.euro, money);
+      state.fans = Big.add(state.fans, fanGain);
+      state.brand = Big.add(state.brand, brandGain);
+      state.mood = Math.min(2.5, state.mood + .04);
+      addLog("Heimspiel: +" + Big.fmt(money, " EUR") + ", +" + Big.fmt(fanGain, " Fans") + ".");
+      render();
+    }
+
+    function buyLine(id) {
+      const def = lineDefs.find(item => item.id === id);
+      const level = state.lines[id] || 0;
+      const price = cost(def, level);
+      if (!pay(price)) return;
+      state.lines[id] = level + 1;
+      addLog(def.name + " erreicht Stufe " + state.lines[id] + ".");
+      render();
+    }
+
+    function buyUpgrade(id) {
+      const def = upgradeDefs.find(item => item.id === id);
+      const level = state.upgrades[id] || 0;
+      const price = cost(def, level);
+      if (!pay(price)) return;
+      state.upgrades[id] = level + 1;
+      addLog(def.name + " verbessert auf Stufe " + state.upgrades[id] + ".");
+      render();
+    }
+
+    function hirePlayer(id) {
+      if (state.players[id]) return;
+      const def = playerDefs.find(item => item.id === id);
+      const price = Big.from(def.cost);
+      if (!pay(price)) return;
+      state.players[id] = true;
+      state.strength = Big.add(state.strength, Big.from(def.strength));
+      state.fans = Big.add(state.fans, Big.from(def.fans));
+      state.brand = Big.add(state.brand, Big.from(def.brand));
+      addLog(def.name + " unterschreibt. Der Kader wirkt sofort groesser.");
+      render();
+    }
+
+    function hireTrainer(id) {
+      if (state.trainers[id]) return;
+      const def = trainerDefs.find(item => item.id === id);
+      const price = Big.from(def.cost);
+      if (!pay(price)) return;
+      state.trainers[id] = true;
+      addLog(def.name + " kommt ins Trainerteam.");
+      render();
+    }
+
+    function signContract(id) {
+      if (state.contracts[id]) return;
+      const def = contractDefs.find(item => item.id === id);
+      if (!contractUnlocked(def)) return;
+      const price = Big.from(def.cost);
+      if (!pay(price)) return;
+      state.contracts[id] = true;
+      addLog(def.name + " ist aktiv. Die Geschaeftsstelle laechelt.");
+      render();
+    }
+
+    function contractUnlocked(def) {
+      return Big.cmp(state.brand, Big.from(def.needs.brand || 0)) >= 0;
+    }
+
+    function playCompetition(id) {
+      const index = competitionDefs.findIndex(item => item.id === id);
+      const def = competitionDefs[index];
+      if (state.leagueIndex > index) return;
+      if (Big.cmp(state.strength, Big.from(def.need)) < 0) return;
+      state.euro = Big.add(state.euro, Big.from(def.prize));
+      state.brand = Big.add(state.brand, Big.from(def.brand));
+      state.fans = Big.add(state.fans, Big.from(def.brand * 2));
+      state.leagueIndex = Math.max(state.leagueIndex, index + 1);
+      state.mood = Math.min(2.5, state.mood + .25);
+      addLog(def.name + " gewonnen. Naechstes Ziel: " + def.next + ".");
+      render();
+    }
+
+    function prestigeGain() {
+      if (Big.cmp(state.brand, Big.from(1_000_000_000)) < 0) return Big.zero();
+      const exponent = state.brand.e - 8;
+      return Big.from(Math.max(1, Math.floor(state.brand.m * Math.pow(2, Math.max(0, exponent)))));
+    }
+
+    function prestige() {
+      const gain = prestigeGain();
+      if (Big.cmp(gain, Big.one()) < 0) return;
+      const legends = Big.add(state.legends, gain);
+      state = defaultState();
+      state.legends = legends;
+      addLog("Ein neuer Legendenlauf beginnt. Permanente Legendenpunkte: " + Big.fmt(legends) + ".");
+      saveState();
+      render();
+    }
+
+    function tick(now) {
+      const dt = Math.min(2, (now - lastTick) / 1000);
+      lastTick = now;
+      const r = rates();
+      state.euro = Big.add(state.euro, Big.scale(r.euro, dt));
+      state.fans = Big.add(state.fans, Big.scale(r.fans, dt));
+      state.strength = Big.add(state.strength, Big.scale(r.strength, dt));
+      state.brand = Big.add(state.brand, Big.scale(r.brand, dt));
+      state.talents = Big.add(state.talents, Big.scale(r.talents, dt));
+      state.mood = Math.max(1, state.mood - dt * .006);
+
+      if (Date.now() - lastSave > 10000) {
+        saveState(true);
+        lastSave = Date.now();
+      }
+
+      render(false);
+      requestAnimationFrame(tick);
+    }
+
+    function saveState(auto = false) {
+      localStorage.setItem(SAVE_KEY, JSON.stringify(state));
+      document.getElementById("saveStatus").textContent = auto ? "Autosave " + new Date().toLocaleTimeString("de-DE") : "Gespeichert";
+    }
+
+    function loadState() {
+      try {
+        const raw = localStorage.getItem(SAVE_KEY);
+        if (!raw) return defaultState();
+        const loaded = JSON.parse(raw);
+        const fresh = defaultState();
+        return {
+          ...fresh,
+          ...loaded,
+          euro: Big.from(loaded.euro),
+          fans: Big.from(loaded.fans),
+          strength: Big.from(loaded.strength),
+          brand: Big.from(loaded.brand),
+          talents: Big.from(loaded.talents),
+          legends: Big.from(loaded.legends),
+          lines: { ...fresh.lines, ...(loaded.lines || {}) },
+          upgrades: { ...fresh.upgrades, ...(loaded.upgrades || {}) },
+          players: loaded.players || {},
+          trainers: loaded.trainers || {},
+          contracts: loaded.contracts || {},
+          log: loaded.log || fresh.log
+        };
+      } catch (error) {
+        return defaultState();
+      }
+    }
+
+    function exportSave() {
+      document.getElementById("saveBox").value = btoa(unescape(encodeURIComponent(JSON.stringify(state))));
+      document.getElementById("saveStatus").textContent = "Export erstellt";
+    }
+
+    function importSave() {
+      try {
+        const raw = document.getElementById("saveBox").value.trim();
+        if (!raw) return;
+        localStorage.setItem(SAVE_KEY, decodeURIComponent(escape(atob(raw))));
+        state = loadState();
+        addLog("Speicherstand importiert.");
+        saveState();
+        render();
+      } catch (error) {
+        document.getElementById("saveStatus").textContent = "Import fehlgeschlagen";
+      }
+    }
+
+    function resetGame() {
+      if (!confirm("Speicherstand wirklich loeschen?")) return;
+      localStorage.removeItem(SAVE_KEY);
+      state = defaultState();
+      render();
+      saveState();
+    }
+
+    function render(full = true) {
+      const r = rates();
+      const att = attendance();
+      const cap = stadiumCapacity();
+      const currentPhase = phase();
+      const league = competitionDefs[state.leagueIndex - 1]?.next || "Bolzplatzliga";
+
+      resourcesEl.innerHTML = [
+        ["Euro", Big.fmt(state.euro, " EUR")],
+        ["Fans", Big.fmt(state.fans)],
+        ["Teamstaerke", Big.fmt(state.strength)],
+        ["Markenwert", Big.fmt(state.brand)],
+        ["Talente", Big.fmt(state.talents)],
+        ["Legendenpunkte", Big.fmt(state.legends)]
+      ].map(([label, value]) => `<div class="resource"><span>${label}</span><strong>${value}</strong></div>`).join("");
+
+      document.getElementById("leagueName").textContent = currentPhase[1] + " - " + league;
+      document.getElementById("eps").textContent = Big.fmt(r.euro, " EUR/s");
+      document.getElementById("fps").textContent = Big.fmt(r.fans, " Fans/s");
+      document.getElementById("attendance").textContent = Big.fmt(att) + " / " + Big.fmt(cap);
+      document.getElementById("mood").textContent = Math.round(state.mood * 100) + "%";
+      document.getElementById("stadiumLine").textContent = Big.fmt(cap) + " Plaetze, " + Big.fmt(att) + " erwartet";
+      document.getElementById("phaseTag").textContent = currentPhase[0];
+
+      const gain = prestigeGain();
+      document.getElementById("legendGain").textContent = "+" + Big.fmt(gain) + " LP";
+      document.getElementById("prestigeBtn").disabled = Big.cmp(gain, Big.one()) < 0;
+
+      if (full) {
+        renderUpgrades();
+        renderTab();
+        renderCompetitions();
+        renderFeed();
+      } else {
+        updateButtons();
+      }
+      drawStadium();
+    }
+
+    function renderUpgrades() {
+      document.getElementById("upgradeList").innerHTML = upgradeDefs.map(def => {
+        const level = state.upgrades[def.id] || 0;
+        const price = cost(def, level);
+        return `<article class="card">
+          <div class="card-head">
+            <div><h3>${def.name}</h3><p class="muted">${def.desc}</p></div>
+            <span class="tag">Stufe ${level}</span>
+          </div>
+          <p class="muted">${def.effect}</p>
+          <div class="buy-row">
+            <span class="muted">Kosten: ${Big.fmt(price, " EUR")}</span>
+            <button data-action="upgrade" data-id="${def.id}">Kaufen</button>
+          </div>
+        </article>`;
+      }).join("");
+    }
+
+    function renderTab() {
+      const target = document.getElementById("tabContent");
+      document.querySelectorAll(".tab").forEach(button => button.classList.toggle("active", button.dataset.tab === activeTab));
+
+      if (activeTab === "lines") {
+        target.innerHTML = lineDefs.map(def => {
+          const level = state.lines[def.id] || 0;
+          const price = cost(def, level);
+          const outputs = Object.entries(def.out).map(([key, value]) => `${trim(value * Math.max(1, level), 2)} ${labelFor(key)}/s`).join(" + ");
+          return `<article class="card">
+            <div class="card-head">
+              <div><h3>${def.name}</h3><p class="muted">${def.desc}</p></div>
+              <span class="tag">${def.tag} ${level}</span>
+            </div>
+            <p class="muted">${outputs}</p>
+            <div class="buy-row">
+              <span class="muted">Kosten: ${Big.fmt(price, " EUR")}</span>
+              <button data-action="line" data-id="${def.id}">Ausbauen</button>
+            </div>
+          </article>`;
+        }).join("");
+      }
+
+      if (activeTab === "squad") {
+        target.innerHTML = playerDefs.map(def => playerCard(def)).join("") + trainerDefs.map(def => trainerCard(def)).join("");
+      }
+
+      if (activeTab === "market") {
+        target.innerHTML = contractDefs.map(def => {
+          const active = !!state.contracts[def.id];
+          const unlocked = contractUnlocked(def);
+          return `<article class="card contract">
+            <div class="card-head">
+              <div><h3>${def.name}</h3><p class="muted">${def.desc}</p></div>
+              <span class="tag">${active ? "Aktiv" : def.tag}</span>
+            </div>
+            <p class="muted">Bonus: ${Big.fmt(Big.from(def.euro), " EUR/s")} | Bedarf: ${Big.fmt(Big.from(def.needs.brand || 0))} Marke</p>
+            <div class="buy-row">
+              <span class="muted">Abschluss: ${Big.fmt(Big.from(def.cost), " EUR")}</span>
+              <button data-action="contract" data-id="${def.id}" ${active || !unlocked ? "disabled" : ""}>${active ? "Unterzeichnet" : "Unterzeichnen"}</button>
+            </div>
+          </article>`;
+        }).join("");
+      }
+
+      updateButtons();
+    }
+
+    function playerCard(def) {
+      const active = !!state.players[def.id];
+      return `<article class="card player">
+        <div class="card-head">
+          <div><h3>${def.name}</h3><p class="muted">${def.desc}</p></div>
+          <span class="tag">${active ? "Im Kader" : def.tag}</span>
+        </div>
+        <p class="muted">+${Big.fmt(Big.from(def.strength))} Staerke, +${Big.fmt(Big.from(def.fans))} Fans, +${Big.fmt(Big.from(def.brand))} Marke</p>
+        <div class="buy-row">
+          <span class="muted">Handgeld: ${Big.fmt(Big.from(def.cost), " EUR")}</span>
+          <button data-action="player" data-id="${def.id}" ${active ? "disabled" : ""}>Verpflichten</button>
+        </div>
+      </article>`;
+    }
+
+    function trainerCard(def) {
+      const active = !!state.trainers[def.id];
+      return `<article class="card trainer">
+        <div class="card-head">
+          <div><h3>${def.name}</h3><p class="muted">${def.desc}</p></div>
+          <span class="tag">${active ? "Aktiv" : def.tag}</span>
+        </div>
+        <p class="muted">Bonus: +${Math.round(def.bonus * 100)}%</p>
+        <div class="buy-row">
+          <span class="muted">Gehaltspaket: ${Big.fmt(Big.from(def.cost), " EUR")}</span>
+          <button data-action="trainer" data-id="${def.id}" ${active ? "disabled" : ""}>Einstellen</button>
+        </div>
+      </article>`;
+    }
+
+    function renderCompetitions() {
+      document.getElementById("competitionList").innerHTML = competitionDefs.map((def, index) => {
+        const won = state.leagueIndex > index;
+        const ready = Big.cmp(state.strength, Big.from(def.need)) >= 0;
+        const progress = Math.min(100, Big.toNumber(Big.mul(Big.from(100), Big.from(Big.toNumber(state.strength) / def.need))));
+        return `<article class="card">
+          <div class="card-head">
+            <div><h3>${def.name}</h3><p class="muted">Preisgeld ${Big.fmt(Big.from(def.prize), " EUR")} und ${Big.fmt(Big.from(def.brand))} Marke.</p></div>
+            <span class="tag">${won ? "Gewonnen" : Big.fmt(Big.from(def.need)) + " STA"}</span>
+          </div>
+          <div class="bar"><span style="width:${won ? 100 : progress}%"></span></div>
+          <button data-action="competition" data-id="${def.id}" ${won || !ready ? "disabled" : ""}>Antreten</button>
+        </article>`;
+      }).join("");
+    }
+
+    function renderFeed() {
+      document.getElementById("feed").innerHTML = state.log.map(item => `<div class="feed-item">${item}</div>`).join("");
+    }
+
+    function updateButtons() {
+      document.querySelectorAll("button[data-action='line']").forEach(button => {
+        const def = lineDefs.find(item => item.id === button.dataset.id);
+        button.disabled = !canPay(cost(def, state.lines[def.id] || 0));
+      });
+      document.querySelectorAll("button[data-action='upgrade']").forEach(button => {
+        const def = upgradeDefs.find(item => item.id === button.dataset.id);
+        button.disabled = !canPay(cost(def, state.upgrades[def.id] || 0));
+      });
+      document.querySelectorAll("button[data-action='player']").forEach(button => {
+        const def = playerDefs.find(item => item.id === button.dataset.id);
+        button.disabled = state.players[def.id] || !canPay(Big.from(def.cost));
+      });
+      document.querySelectorAll("button[data-action='trainer']").forEach(button => {
+        const def = trainerDefs.find(item => item.id === button.dataset.id);
+        button.disabled = state.trainers[def.id] || !canPay(Big.from(def.cost));
+      });
+      document.querySelectorAll("button[data-action='contract']").forEach(button => {
+        const def = contractDefs.find(item => item.id === button.dataset.id);
+        button.disabled = state.contracts[def.id] || !contractUnlocked(def) || !canPay(Big.from(def.cost));
+      });
+      document.querySelectorAll("button[data-action='competition']").forEach(button => {
+        const index = competitionDefs.findIndex(item => item.id === button.dataset.id);
+        const def = competitionDefs[index];
+        button.disabled = state.leagueIndex > index || Big.cmp(state.strength, Big.from(def.need)) < 0;
+      });
+    }
+
+    function labelFor(key) {
+      return {
+        euro: "EUR",
+        fans: "Fans",
+        strength: "Staerke",
+        brand: "Marke",
+        talents: "Talente"
+      }[key] || key;
+    }
+
+    function drawStadium() {
+      const width = canvas.width;
+      const height = canvas.height;
+      const cap = Math.max(1, Big.toNumber(stadiumCapacity()));
+      const fill = Math.min(1, Big.toNumber(attendance()) / cap);
+      const mood = Math.min(1, state.mood / 2.5);
+      ctx.clearRect(0, 0, width, height);
+
+      const sky = ctx.createLinearGradient(0, 0, 0, height);
+      sky.addColorStop(0, "#16323a");
+      sky.addColorStop(.52, "#0b201b");
+      sky.addColorStop(1, "#06120e");
+      ctx.fillStyle = sky;
+      ctx.fillRect(0, 0, width, height);
+
+      ctx.fillStyle = "rgba(255,255,255,.06)";
+      for (let i = 0; i < 7; i++) {
+        ctx.beginPath();
+        ctx.arc(110 + i * 130, 56 + Math.sin(Date.now() / 900 + i) * 8, 32 + i % 3 * 5, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      drawStand(82, 130, 300, 210, fill, "#2e5b7a");
+      drawStand(578, 130, 300, 210, fill, "#703f63");
+      drawStand(238, 82, 484, 130, fill, "#6b6740");
+
+      ctx.fillStyle = "#164d2b";
+      roundedRect(195, 278, 570, 210, 10);
+      ctx.fill();
+      ctx.strokeStyle = "rgba(255,255,255,.65)";
+      ctx.lineWidth = 3;
+      ctx.strokeRect(250, 312, 460, 138);
+      ctx.beginPath();
+      ctx.arc(480, 381, 42, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(480, 312);
+      ctx.lineTo(480, 450);
+      ctx.stroke();
+
+      ctx.fillStyle = `rgba(183, 227, 90, ${.15 + mood * .38})`;
+      ctx.fillRect(195, 278, 570, 210);
+
+      ctx.fillStyle = "#edf7f1";
+      ctx.font = "700 26px Inter, sans-serif";
+      ctx.fillText("Idle Economy FC", 48, 52);
+      ctx.font = "500 16px Inter, sans-serif";
+      ctx.fillStyle = "#a8beb3";
+      ctx.fillText("Auslastung " + Math.round(fill * 100) + "% | Stimmung " + Math.round(state.mood * 100) + "%", 48, 80);
+    }
+
+    function drawStand(x, y, w, h, fill, color) {
+      ctx.fillStyle = "rgba(0,0,0,.28)";
+      roundedRect(x + 10, y + 12, w, h, 8);
+      ctx.fill();
+      ctx.fillStyle = color;
+      roundedRect(x, y, w, h, 8);
+      ctx.fill();
+      const rows = 6;
+      const cols = 18;
+      let people = Math.floor(rows * cols * fill);
+      for (let r = 0; r < rows; r++) {
+        for (let c = 0; c < cols; c++) {
+          ctx.fillStyle = people-- > 0 ? (c % 3 === 0 ? "#f3c95b" : c % 3 === 1 ? "#4bd37b" : "#edf7f1") : "rgba(255,255,255,.12)";
+          ctx.fillRect(x + 18 + c * ((w - 36) / cols), y + 20 + r * ((h - 40) / rows), 8, 8);
+        }
+      }
+    }
+
+    function roundedRect(x, y, w, h, r) {
+      ctx.beginPath();
+      ctx.moveTo(x + r, y);
+      ctx.arcTo(x + w, y, x + w, y + h, r);
+      ctx.arcTo(x + w, y + h, x, y + h, r);
+      ctx.arcTo(x, y + h, x, y, r);
+      ctx.arcTo(x, y, x + w, y, r);
+      ctx.closePath();
+    }
+
+    document.getElementById("matchBtn").addEventListener("click", runMatch);
+    document.getElementById("saveBtn").addEventListener("click", () => saveState());
+    document.getElementById("exportBtn").addEventListener("click", exportSave);
+    document.getElementById("importBtn").addEventListener("click", importSave);
+    document.getElementById("resetBtn").addEventListener("click", resetGame);
+    document.getElementById("prestigeBtn").addEventListener("click", prestige);
+    document.getElementById("tabs").addEventListener("click", event => {
+      const button = event.target.closest("button[data-tab]");
+      if (!button) return;
+      activeTab = button.dataset.tab;
+      renderTab();
+    });
+    document.body.addEventListener("click", event => {
+      const button = event.target.closest("button[data-action]");
+      if (!button) return;
+      const id = button.dataset.id;
+      const action = button.dataset.action;
+      if (action === "line") buyLine(id);
+      if (action === "upgrade") buyUpgrade(id);
+      if (action === "player") hirePlayer(id);
+      if (action === "trainer") hireTrainer(id);
+      if (action === "contract") signContract(id);
+      if (action === "competition") playCompetition(id);
+    });
+
+    render();
+    requestAnimationFrame(tick);
+  </script>
+</body>
+</html>
