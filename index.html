@@ -153,8 +153,41 @@
 
     .resource {
       min-width: 0;
+      position: relative;
+      display: grid;
+      grid-template-columns: 34px 1fr;
+      gap: 9px;
+      align-items: center;
       background: rgba(16, 33, 27, .92);
       padding: 12px;
+      overflow: hidden;
+    }
+
+    .resource::after {
+      content: "";
+      position: absolute;
+      inset: auto 9px 7px 52px;
+      height: 4px;
+      border-radius: 999px;
+      background: linear-gradient(90deg, var(--accent), transparent);
+      opacity: .75;
+    }
+
+    .resource-icon {
+      display: grid;
+      place-items: center;
+      width: 34px;
+      height: 34px;
+      border: 1px solid rgba(255, 255, 255, .16);
+      border-radius: 8px;
+      background: radial-gradient(circle at 30% 20%, rgba(255,255,255,.26), transparent 34%), var(--accent-dark);
+      color: var(--accent);
+      font-weight: 900;
+      line-height: 1;
+    }
+
+    .resource-body {
+      min-width: 0;
     }
 
     .resource span {
@@ -171,6 +204,21 @@
       overflow-wrap: anywhere;
       font-size: clamp(.95rem, 1.3vw, 1.18rem);
     }
+
+    .resource small {
+      display: block;
+      color: var(--muted);
+      font-size: .72rem;
+      margin-top: 2px;
+      overflow-wrap: anywhere;
+    }
+
+    .resource.euro { --accent: #f3c95b; --accent-dark: #3a2b0d; }
+    .resource.fans { --accent: #68a7ee; --accent-dark: #102a45; }
+    .resource.strength { --accent: #ee6868; --accent-dark: #3b1717; }
+    .resource.brand { --accent: #d989ff; --accent-dark: #32143e; }
+    .resource.talents { --accent: #4bd37b; --accent-dark: #12351f; }
+    .resource.legends { --accent: #ffffff; --accent-dark: #3d3721; }
 
     .save-panel {
       border-radius: 8px;
@@ -236,6 +284,76 @@
       display: block;
       overflow-wrap: anywhere;
       font-size: 1.12rem;
+    }
+
+    .automation-grid {
+      display: grid;
+      gap: 10px;
+    }
+
+    .automation-status {
+      border: 1px solid rgba(255, 255, 255, .1);
+      border-radius: 8px;
+      background: linear-gradient(135deg, rgba(243, 201, 91, .12), rgba(104, 167, 238, .09));
+      padding: 10px;
+      display: grid;
+      gap: 8px;
+    }
+
+    .cost-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .cost-pill {
+      border: 1px solid rgba(255, 255, 255, .12);
+      border-radius: 999px;
+      padding: 4px 8px;
+      color: var(--muted);
+      font-size: .74rem;
+      background: rgba(0, 0, 0, .18);
+    }
+
+    .dimension-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    .stadium-panel .dimension-grid {
+      padding: 0 14px 14px;
+    }
+
+    .dimension-card {
+      border: 1px solid rgba(255, 255, 255, .1);
+      border-radius: 8px;
+      padding: 10px;
+      background: rgba(9, 24, 19, .54);
+      min-height: 96px;
+    }
+
+    .dimension-card strong {
+      display: block;
+      margin-bottom: 6px;
+    }
+
+    .viz {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 4px;
+      align-items: end;
+      height: 34px;
+      margin-top: 8px;
+    }
+
+    .viz span {
+      display: block;
+      border-radius: 999px 999px 2px 2px;
+      background: var(--viz);
+      min-height: 5px;
+      opacity: .84;
     }
 
     .stadium-panel {
@@ -391,7 +509,7 @@
         padding: 10px;
       }
 
-      .resource-strip, .metric-grid, .split, .tabs {
+      .resource-strip, .metric-grid, .split, .tabs, .dimension-grid {
         grid-template-columns: 1fr;
       }
 
@@ -428,6 +546,16 @@
         <div class="panel hero-action">
           <h2>Spieltag</h2>
           <button class="big-button" id="matchBtn">Heimspiel ausrichten</button>
+          <div class="automation-status">
+            <div class="card-head">
+              <div>
+                <h3 id="autoTitle">Handbetrieb</h3>
+                <p class="muted" id="autoStatus">Heimspiele laufen nur, wenn du sie ausrichtest.</p>
+              </div>
+              <span class="tag" id="autoLevel">Auto 0</span>
+            </div>
+            <div class="bar"><span id="autoProgress"></span></div>
+          </div>
           <div class="metric-grid">
             <div class="metric">
               <span>Einnahmen pro Sekunde</span>
@@ -446,6 +574,11 @@
               <strong id="mood">100%</strong>
             </div>
           </div>
+        </div>
+
+        <div class="panel">
+          <h2>Klicks einsparen</h2>
+          <div class="automation-grid" id="automationList"></div>
         </div>
 
         <div class="panel">
@@ -469,6 +602,7 @@
             <span class="tag" id="phaseTag">Phase 1</span>
           </div>
           <canvas id="stadium" width="960" height="540"></canvas>
+          <div class="dimension-grid" id="dimensionGrid"></div>
         </div>
 
         <div class="panel">
@@ -649,6 +783,23 @@
       { id: "world", name: "Weltturnier", need: 500000, prize: 650000000, brand: 350000, next: "Galaktische Liga" }
     ];
 
+    const automationDefs = [
+      { name: "Vorverkaufszettel", desc: "Fans organisieren die Eingangsschlange. Weniger Klick-Pause.", costs: { euro: 350, fans: 35 }, cooldown: 5, interval: 0 },
+      { name: "Spieltagsplan", desc: "Talente helfen als Ballkinder, Ordner und Social-Team.", costs: { euro: 2500, talents: 8 }, cooldown: 3.5, interval: 0 },
+      { name: "Heimspielbuero", desc: "Das erste echte Auto-Heimspiel: die Geschaeftsstelle taktet selbst.", costs: { euro: 18000, brand: 60 }, cooldown: 2.25, interval: 25 },
+      { name: "Saisonmaschine", desc: "Ticketing, Catering und Presse laufen in einem Rhythmus.", costs: { euro: 125000, fans: 1200, talents: 60 }, cooldown: 1.25, interval: 12 },
+      { name: "Autonomer Clubbetrieb", desc: "Heimspiele werden fast von allein zu grossen Abenden.", costs: { euro: 1200000, brand: 5000 }, cooldown: .7, interval: 5 }
+    ];
+
+    const resourceMeta = {
+      euro: { label: "Euro", icon: "EUR", hint: "Liquiditaet, Bau, Gehaelter", className: "euro" },
+      fans: { label: "Fans", icon: "FAN", hint: "Reichweite, Tribuene, Hype", className: "fans" },
+      strength: { label: "Teamstaerke", icon: "11", hint: "Siege, Ligen, Preisgeld", className: "strength" },
+      brand: { label: "Markenwert", icon: "MW", hint: "Sponsoren, Medien, Deals", className: "brand" },
+      talents: { label: "Talente", icon: "U19", hint: "Nachwuchs, Training, Zukunft", className: "talents" },
+      legends: { label: "Legendenpunkte", icon: "LP", hint: "Prestige und permanente Boni", className: "legends" }
+    };
+
     const defaultState = () => ({
       euro: Big.from(20),
       fans: Big.from(12),
@@ -657,6 +808,8 @@
       talents: Big.from(0),
       legends: Big.zero(),
       mood: 1,
+      matchCooldown: 0,
+      auto: { match: 0, matchTimer: 0 },
       leagueIndex: 0,
       lines: Object.fromEntries(lineDefs.map(def => [def.id, 0])),
       upgrades: Object.fromEntries(upgradeDefs.map(def => [def.id, 0])),
@@ -686,6 +839,27 @@
 
     function canPay(amount) {
       return Big.cmp(state.euro, amount) >= 0;
+    }
+
+    function resourceValue(key) {
+      return key === "euro" ? state.euro : state[key];
+    }
+
+    function setResourceValue(key, value) {
+      if (key === "euro") state.euro = value;
+      else state[key] = value;
+    }
+
+    function canPayCosts(costs) {
+      return Object.entries(costs).every(([key, value]) => Big.cmp(resourceValue(key), Big.from(value)) >= 0);
+    }
+
+    function payCosts(costs) {
+      if (!canPayCosts(costs)) return false;
+      Object.entries(costs).forEach(([key, value]) => {
+        setResourceValue(key, Big.sub(resourceValue(key), Big.from(value)));
+      });
+      return true;
     }
 
     function pay(amount) {
@@ -764,7 +938,26 @@
       return ["Phase 1", "Dorfverein"];
     }
 
-    function runMatch() {
+    function matchAutoLevel() {
+      return Math.min(state.auto?.match || 0, automationDefs.length);
+    }
+
+    function manualCooldown() {
+      const level = matchAutoLevel();
+      return level === 0 ? 7 : automationDefs[level - 1].cooldown;
+    }
+
+    function autoInterval() {
+      const level = matchAutoLevel();
+      return level === 0 ? 0 : automationDefs[level - 1].interval;
+    }
+
+    function nextAutomationDef() {
+      return automationDefs[matchAutoLevel()];
+    }
+
+    function runMatch(source = "manual") {
+      if (source === "manual" && state.matchCooldown > 0) return;
       const crowd = attendance();
       const ticket = 7.5 * (1 + upgradeLevel("catering") * .12);
       const money = Big.scale(crowd, ticket * state.mood);
@@ -774,7 +967,17 @@
       state.fans = Big.add(state.fans, fanGain);
       state.brand = Big.add(state.brand, brandGain);
       state.mood = Math.min(2.5, state.mood + .04);
-      addLog("Heimspiel: +" + Big.fmt(money, " EUR") + ", +" + Big.fmt(fanGain, " Fans") + ".");
+      if (source === "manual") state.matchCooldown = manualCooldown();
+      addLog((source === "auto" ? "Auto-Heimspiel" : "Heimspiel") + ": +" + Big.fmt(money, " EUR") + ", +" + Big.fmt(fanGain, " Fans") + ".");
+      render();
+    }
+
+    function buyAutomation() {
+      const def = nextAutomationDef();
+      if (!def || !payCosts(def.costs)) return;
+      state.auto.match = matchAutoLevel() + 1;
+      state.auto.matchTimer = autoInterval() || 0;
+      addLog(def.name + " aktiviert. Ein paar Klicks duerfen jetzt Pause machen.");
       render();
     }
 
@@ -877,6 +1080,18 @@
       state.brand = Big.add(state.brand, Big.scale(r.brand, dt));
       state.talents = Big.add(state.talents, Big.scale(r.talents, dt));
       state.mood = Math.max(1, state.mood - dt * .006);
+      state.matchCooldown = Math.max(0, (state.matchCooldown || 0) - dt);
+
+      const interval = autoInterval();
+      if (interval > 0) {
+        state.auto.matchTimer = Math.max(0, (state.auto.matchTimer || interval) - dt);
+        if (state.auto.matchTimer <= 0) {
+          runMatch("auto");
+          state.auto.matchTimer = interval;
+        }
+      } else {
+        state.auto.matchTimer = 0;
+      }
 
       if (Date.now() - lastSave > 10000) {
         saveState(true);
@@ -907,6 +1122,8 @@
           brand: Big.from(loaded.brand),
           talents: Big.from(loaded.talents),
           legends: Big.from(loaded.legends),
+          matchCooldown: loaded.matchCooldown || 0,
+          auto: { ...fresh.auto, ...(loaded.auto || {}) },
           lines: { ...fresh.lines, ...(loaded.lines || {}) },
           upgrades: { ...fresh.upgrades, ...(loaded.upgrades || {}) },
           players: loaded.players || {},
@@ -954,13 +1171,19 @@
       const league = competitionDefs[state.leagueIndex - 1]?.next || "Bolzplatzliga";
 
       resourcesEl.innerHTML = [
-        ["Euro", Big.fmt(state.euro, " EUR")],
-        ["Fans", Big.fmt(state.fans)],
-        ["Teamstaerke", Big.fmt(state.strength)],
-        ["Markenwert", Big.fmt(state.brand)],
-        ["Talente", Big.fmt(state.talents)],
-        ["Legendenpunkte", Big.fmt(state.legends)]
-      ].map(([label, value]) => `<div class="resource"><span>${label}</span><strong>${value}</strong></div>`).join("");
+        ["euro", Big.fmt(state.euro, " EUR")],
+        ["fans", Big.fmt(state.fans)],
+        ["strength", Big.fmt(state.strength)],
+        ["brand", Big.fmt(state.brand)],
+        ["talents", Big.fmt(state.talents)],
+        ["legends", Big.fmt(state.legends)]
+      ].map(([key, value]) => {
+        const meta = resourceMeta[key];
+        return `<div class="resource ${meta.className}">
+          <div class="resource-icon">${meta.icon}</div>
+          <div class="resource-body"><span>${meta.label}</span><strong>${value}</strong><small>${meta.hint}</small></div>
+        </div>`;
+      }).join("");
 
       document.getElementById("leagueName").textContent = currentPhase[1] + " - " + league;
       document.getElementById("eps").textContent = Big.fmt(r.euro, " EUR/s");
@@ -969,12 +1192,15 @@
       document.getElementById("mood").textContent = Math.round(state.mood * 100) + "%";
       document.getElementById("stadiumLine").textContent = Big.fmt(cap) + " Plaetze, " + Big.fmt(att) + " erwartet";
       document.getElementById("phaseTag").textContent = currentPhase[0];
+      renderAutomationStatus();
+      renderDimensions();
 
       const gain = prestigeGain();
       document.getElementById("legendGain").textContent = "+" + Big.fmt(gain) + " LP";
       document.getElementById("prestigeBtn").disabled = Big.cmp(gain, Big.one()) < 0;
 
       if (full) {
+        renderAutomation();
         renderUpgrades();
         renderTab();
         renderCompetitions();
@@ -983,6 +1209,72 @@
         updateButtons();
       }
       drawStadium();
+    }
+
+    function renderAutomationStatus() {
+      const level = matchAutoLevel();
+      const interval = autoInterval();
+      const cooldown = manualCooldown();
+      const next = nextAutomationDef();
+      const readyText = state.matchCooldown > 0 ? "bereit in " + trim(state.matchCooldown, 1) + "s" : "bereit";
+      document.getElementById("matchBtn").textContent = state.matchCooldown > 0 ? "Heimspiel " + readyText : "Heimspiel ausrichten";
+      document.getElementById("matchBtn").disabled = state.matchCooldown > 0;
+      document.getElementById("autoLevel").textContent = "Auto " + level;
+      document.getElementById("autoTitle").textContent = interval > 0 ? "Auto-Heimspiel aktiv" : "Handbetrieb mit Assistenz";
+      document.getElementById("autoStatus").textContent = interval > 0
+        ? "Naechstes Auto-Heimspiel in " + trim(state.auto.matchTimer || interval, 1) + "s. Manueller Klick: " + trim(cooldown, 1) + "s Cooldown."
+        : (next ? "Manueller Klick: " + trim(cooldown, 1) + "s Cooldown. Naechste Stufe spart mehr." : "Alle Heimspiel-Klicks maximal eingespart.");
+      const progress = interval > 0 ? 100 - Math.min(100, ((state.auto.matchTimer || interval) / interval) * 100) : 100 - Math.min(100, (state.matchCooldown / cooldown) * 100);
+      document.getElementById("autoProgress").style.width = Math.max(0, progress) + "%";
+    }
+
+    function renderDimensions() {
+      const data = [
+        { title: "Geld-Ebene", text: "Euro baut Infrastruktur. Der Balken pulsiert mit Einkommen und Sponsoren.", key: "euro", color: "#f3c95b", values: [4, 9, 13, 18, 22, 27, 31] },
+        { title: "Fan-Ebene", text: "Fans fuellen Tribuenen. Die Welle zeigt Reichweite und Stimmung.", key: "fans", color: "#68a7ee", values: [8, 16, 9, 22, 14, 28, 20] },
+        { title: "Sport-Ebene", text: "Teamstaerke knackt Wettbewerbe. Rot steht fuer Druck auf dem Platz.", key: "strength", color: "#ee6868", values: [6, 12, 18, 15, 24, 21, 31] },
+        { title: "Marken-Ebene", text: "Markenwert oeffnet Deals. Violett steht fuer Medien, Glamour und Hebel.", key: "brand", color: "#d989ff", values: [3, 6, 12, 10, 18, 25, 29] }
+      ];
+      document.getElementById("dimensionGrid").innerHTML = data.map(item => {
+        const amount = Big.toNumber(resourceValue(item.key));
+        const boost = Math.min(18, Math.log10(1 + amount) * 3);
+        const bars = item.values.map((value, index) => `<span style="height:${value + boost + index % 2 * 3}px"></span>`).join("");
+        return `<article class="dimension-card" style="--viz:${item.color}">
+          <strong>${item.title}</strong>
+          <p class="muted">${item.text}</p>
+          <div class="viz">${bars}</div>
+        </article>`;
+      }).join("");
+    }
+
+    function renderAutomation() {
+      const level = matchAutoLevel();
+      const next = nextAutomationDef();
+      const owned = automationDefs.slice(0, level).map((def, index) => `<article class="card">
+        <div class="card-head">
+          <div><h3>${def.name}</h3><p class="muted">${def.desc}</p></div>
+          <span class="tag">Stufe ${index + 1}</span>
+        </div>
+      </article>`).join("");
+      const nextCard = next ? `<article class="card">
+        <div class="card-head">
+          <div><h3>${next.name}</h3><p class="muted">${next.desc}</p></div>
+          <span class="tag">Naechste Stufe</span>
+        </div>
+        <div class="cost-list">${formatCosts(next.costs)}</div>
+        <div class="buy-row">
+          <span class="muted">${next.interval > 0 ? "Auto alle " + trim(next.interval, 1) + "s" : "Klick-Cooldown " + trim(next.cooldown, 1) + "s"}</span>
+          <button data-action="automation">Freischalten</button>
+        </div>
+      </article>` : `<article class="card"><h3>Maximal automatisiert</h3><p class="muted">Der Spieltag laeuft so eigenstaendig, wie ein Fussballkonzern eben laufen kann.</p></article>`;
+      document.getElementById("automationList").innerHTML = nextCard + owned;
+    }
+
+    function formatCosts(costs) {
+      return Object.entries(costs).map(([key, value]) => {
+        const meta = resourceMeta[key];
+        return `<span class="cost-pill">${meta.label}: ${Big.fmt(Big.from(value), key === "euro" ? " EUR" : "")}</span>`;
+      }).join("");
     }
 
     function renderUpgrades() {
@@ -1127,6 +1419,10 @@
         const def = competitionDefs[index];
         button.disabled = state.leagueIndex > index || Big.cmp(state.strength, Big.from(def.need)) < 0;
       });
+      document.querySelectorAll("button[data-action='automation']").forEach(button => {
+        const def = nextAutomationDef();
+        button.disabled = !def || !canPayCosts(def.costs);
+      });
     }
 
     function labelFor(key) {
@@ -1241,6 +1537,7 @@
       if (action === "trainer") hireTrainer(id);
       if (action === "contract") signContract(id);
       if (action === "competition") playCompetition(id);
+      if (action === "automation") buyAutomation();
     });
 
     render();
