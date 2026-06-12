@@ -755,7 +755,7 @@
       zero: () => ({ m: 0, e: 0 }),
       one: () => ({ m: 1, e: 0 }),
       from(value) {
-        if (typeof value === "object" && value && "m" in value) return this.norm({ m: value.m, e: value.e });
+        if (typeof value === "object" && value && "m" in value) return this.norm({ m: Number(value.m), e: Number(value.e) });
         if (!Number.isFinite(value) || value <= 0) return this.zero();
         const e = Math.floor(Math.log10(value));
         return this.norm({ m: value / Math.pow(10, e), e });
@@ -763,7 +763,7 @@
       norm(x) {
         if (!x || !Number.isFinite(x.m) || x.m <= 0) return { m: 0, e: 0 };
         let m = x.m;
-        let e = x.e || 0;
+        let e = Number.isFinite(x.e) ? x.e : 0;
         while (m >= 10) {
           m /= 10;
           e += 1;
@@ -820,13 +820,14 @@
         return a.m * Math.pow(10, a.e);
       },
       fmt(a, suffix = "") {
+        suffix = suffix ?? "";
         a = this.from(a);
         if (a.m === 0) return "0" + suffix;
         const names = ["", "K", "M", "B", "T", "Qa", "Qi", "Sx", "Sp", "Oc", "No", "Dc"];
-        if (a.e < 33) {
+        if (a.e < 33 && Math.floor(a.e / 3) < names.length) {
           const tier = Math.floor(a.e / 3);
           const scaled = a.m * Math.pow(10, a.e - tier * 3);
-          return trim(scaled, tier === 0 ? 0 : 2) + names[tier] + suffix;
+          return trim(scaled, tier === 0 ? 0 : 2) + (names[tier] || "") + suffix;
         }
         return trim(a.m, 2) + "e" + a.e + suffix;
       }
