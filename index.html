@@ -397,6 +397,24 @@
       padding: 14px 14px 0;
     }
 
+    .stadium-actions {
+      display: grid;
+      gap: 8px;
+      justify-items: end;
+      min-width: 150px;
+    }
+
+    .stadium-actions button {
+      min-height: 36px;
+      padding: 7px 10px;
+      width: 100%;
+    }
+
+    .stadium-actions .muted {
+      font-size: .72rem;
+      text-align: right;
+    }
+
     canvas {
       display: block;
       width: 100%;
@@ -599,6 +617,15 @@
         height: 3px;
       }
 
+      .stadium-header {
+        align-items: stretch;
+        flex-direction: column;
+      }
+
+      .stadium-actions {
+        justify-items: stretch;
+      }
+
       .buy-row {
         grid-template-columns: 1fr;
       }
@@ -689,7 +716,11 @@
               <h2>Stadion und Fanwelle</h2>
               <p class="muted" id="stadiumLine">250 Plaetze, Rasen frisch gewalzt</p>
             </div>
-            <span class="tag" id="phaseTag">Phase 1</span>
+            <div class="stadium-actions">
+              <span class="tag" id="phaseTag">Phase 1</span>
+              <button data-action="upgrade" data-id="stadium" id="stadiumUpgradeBtn">Stadion ausbauen</button>
+              <span class="muted" id="stadiumUpgradeCost">Kosten: 120 EUR</span>
+            </div>
           </div>
           <canvas id="stadium" width="960" height="540"></canvas>
           <div class="dimension-grid" id="dimensionGrid"></div>
@@ -1452,6 +1483,9 @@
       const cap = stadiumCapacity();
       const currentPhase = phase();
       const league = competitionDefs[state.leagueIndex - 1]?.next || "Bolzplatzliga";
+      const stadiumDef = upgradeDefs.find(item => item.id === "stadium");
+      const stadiumPrice = cost(stadiumDef, upgradeLevel("stadium"));
+      const soldOut = Big.cmp(att, cap) >= 0;
 
       resourcesEl.innerHTML = [
         ["euro", Big.fmt(state.euro, " EUR")],
@@ -1474,8 +1508,9 @@
       document.getElementById("fps").textContent = Big.fmt(r.fans, " Fans/s");
       document.getElementById("attendance").textContent = Big.fmt(att) + " / " + Big.fmt(cap);
       document.getElementById("mood").textContent = Math.round(state.mood * 100) + "%";
-      document.getElementById("stadiumLine").textContent = Big.fmt(cap) + " Plaetze, " + Big.fmt(att) + " erwartet";
+      document.getElementById("stadiumLine").textContent = Big.fmt(cap) + " Plaetze, " + Big.fmt(att) + " erwartet - " + (soldOut ? "ausverkauft, Ausbau wirkt sofort" : "noch Luft, mehr Fans fuellen die Kurve");
       document.getElementById("phaseTag").textContent = currentPhase[0];
+      document.getElementById("stadiumUpgradeCost").textContent = "Kosten: " + Big.fmt(stadiumPrice, " EUR") + " | +250 Plaetze";
       renderAutomationStatus();
       renderDimensions();
 

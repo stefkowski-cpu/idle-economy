@@ -22,6 +22,7 @@ Schnellstart
 
 5. Verbessere die Clubentwicklung.
    Stadionausbau, Catering, Akademie, Marketing und Automatisierung geben dauerhafte Boni.
+   Den Stadionausbau findest du zusaetzlich direkt an der Stadiongrafik, weil Kapazitaet ein zentraler Wachstumshebel ist.
 
 6. Nutze den Scouting-Draft im Kader.
    Spieler werden nicht einfach gekauft. Du bekommst drei Profile mit unsicheren Staerkespannen, Risiko und Scout-Sicherheit.
@@ -138,6 +139,8 @@ Unter dem Stadion liegen vier Mini-Visualisierungen. Sie sollen die Ebenen unter
 - Marken-Ebene: Sponsoren, Medien und grosse Hebel.
 
 In der Stadiongrafik zeigen die Tribuenen direkt die Auslastung: leere Sitze sind blass, belegte Plaetze werden als kleine Fans dargestellt. Der Ring rechts im Stadionbild fasst die Auslastung nochmal als Prozentwert zusammen.
+
+Der Button "Stadion ausbauen" sitzt direkt an der Stadiongrafik. Wenn das Stadion ausverkauft ist, wirkt der Ausbau sofort auf moegliche Heimspiel-Zuschauer und damit auf Ticketeinnahmen.
 
 
 Speichern
