@@ -53,6 +53,9 @@ Talente
 Legendenpunkte
   Prestige-Waehrung fuer spaetere Spielphasen. Sie wird relevant, wenn der Club extrem gross geworden ist.
 
+Sportlicher Lauf
+  Eine seltene Boost-Waehrung. Sie ist nur gelegentlich vorbereitbar, kostet sehr viel Euro, Fans, Markenwert und Talente und kann danach fuer kurze Zeit aktiviert werden. Waehrend des Laufs steigt die Teamstaerke-Produktion deutlich.
+
 
 Scouting-Draft
 --------------
@@ -99,6 +102,21 @@ Die Automatisierung ist bewusst nicht gratis. Du musst mehrere Waehrungsebenen e
 Der Fortschrittsbalken unter dem Heimspiel-Button zeigt entweder den manuellen Cooldown oder den Timer bis zum naechsten Auto-Heimspiel.
 
 
+Sportlicher Lauf
+----------------
+Der Sportliche Lauf ist kein normaler Dauerbonus. Er soll sich wie eine seltene Phase anfuehlen, in der Training, Taktik und Mannschaftsform ploetzlich zusammenfallen.
+
+- Zuerst muss ein Lauf teuer vorbereitet werden.
+- Die Vorbereitung kostet mehrere Ebenen gleichzeitig: Euro, Fans, Markenwert und Talente.
+- Nach einer Vorbereitung besitzt du einen Lauf-Punkt.
+- Mit "Lauf starten" wird der Punkt verbraucht.
+- Der Effekt laeuft 90 Sekunden.
+- Waehrenddessen wird die Produktion von Teamstaerke stark erhoeht.
+- Danach gibt es wieder eine laengere Wartezeit, bis ein neuer Lauf vorbereitet werden kann.
+
+Dadurch ist der Sportliche Lauf eine bewusste Timing-Entscheidung, nicht einfach ein weiterer permanenter Multiplikator.
+
+
 Visualisierungen
 ----------------
 Die Waehrungsleiste bleibt beim Scrollen oben arretiert. Sie ist absichtlich kompakt, damit Euro, Fans, Teamstaerke, Markenwert, Talente und Legendenpunkte auch auf dem Handy sichtbar bleiben.
@@ -127,6 +145,8 @@ Speichern
 Das Spiel speichert automatisch im Browser per localStorage. Du kannst den Speicherstand auch exportieren und spaeter importieren.
 
 Wichtig: Der Speicherstand ist browser- und geraetegebunden. Wenn du den Browser wechselst, nutze Export und Import.
+
+Der Button "Neustart" loescht den lokalen Speicherstand nach Rueckfrage und beginnt ein neues Spiel.
 
 
 GitHub Pages

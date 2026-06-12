@@ -171,7 +171,7 @@
 
     .resource-strip {
       display: grid;
-      grid-template-columns: repeat(6, minmax(96px, 1fr));
+      grid-template-columns: repeat(7, minmax(84px, 1fr));
       gap: 1px;
       overflow: hidden;
       background: rgba(41, 72, 61, .75);
@@ -245,6 +245,7 @@
     .resource.strength { --accent: #ee6868; --accent-dark: #3b1717; }
     .resource.brand { --accent: #d989ff; --accent-dark: #32143e; }
     .resource.talents { --accent: #4bd37b; --accent-dark: #12351f; }
+    .resource.lauf { --accent: #ff8f5a; --accent-dark: #3c1f12; }
     .resource.legends { --accent: #ffffff; --accent-dark: #3d3721; }
 
     .save-panel {
@@ -543,7 +544,7 @@
       }
 
       .resource-strip {
-        grid-template-columns: repeat(3, 1fr);
+        grid-template-columns: repeat(4, 1fr);
       }
     }
 
@@ -565,7 +566,7 @@
       }
 
       .resource-strip {
-        grid-template-columns: repeat(3, minmax(0, 1fr));
+        grid-template-columns: repeat(4, minmax(0, 1fr));
       }
 
       .resource {
@@ -620,6 +621,7 @@
       <div class="save-panel">
         <button id="saveBtn">Speichern</button>
         <button id="exportBtn">Export</button>
+        <button class="danger" id="restartTopBtn">Neustart</button>
         <a class="button-link" href="readme.txt" target="_blank" rel="noopener">Anleitung</a>
         <span class="muted" id="saveStatus">Autosave bereit</span>
       </div>
@@ -721,6 +723,11 @@
             </div>
             <button id="prestigeBtn" disabled>Legendenlauf starten</button>
           </div>
+        </div>
+
+        <div class="panel">
+          <h2>Sportlicher Lauf</h2>
+          <div class="list" id="sportRunPanel"></div>
         </div>
 
         <div class="panel footer-tools">
@@ -902,6 +909,7 @@
       strength: { label: "Teamstaerke", icon: "11", hint: "Siege, Ligen, Preisgeld", className: "strength" },
       brand: { label: "Markenwert", icon: "MW", hint: "Sponsoren, Medien, Deals", className: "brand" },
       talents: { label: "Talente", icon: "U19", hint: "Nachwuchs, Training, Zukunft", className: "talents" },
+      lauf: { label: "Sportlicher Lauf", icon: "RUN", hint: "Seltener Boost fuer Staerke", className: "lauf" },
       legends: { label: "Legendenpunkte", icon: "LP", hint: "Prestige und permanente Boni", className: "legends" }
     };
 
@@ -911,10 +919,12 @@
       strength: Big.from(5),
       brand: Big.from(0),
       talents: Big.from(0),
+      lauf: Big.zero(),
       legends: Big.zero(),
       mood: 1,
       matchCooldown: 0,
       competitionCooldown: 0,
+      sportRun: { active: 0, cooldown: 80 },
       auto: { match: 0, matchTimer: 0 },
       leagueIndex: 0,
       scout: { batch: [], seen: 0 },
@@ -979,6 +989,39 @@
       return state.upgrades[id] || 0;
     }
 
+    function sportRunActive() {
+      return (state.sportRun?.active || 0) > 0;
+    }
+
+    function sportRunCost() {
+      const fans = Math.max(1, Big.toNumber(state.fans));
+      const brand = Math.max(1, Big.toNumber(state.brand));
+      const strength = Math.max(1, Big.toNumber(state.strength));
+      return {
+        euro: Math.max(250000, Math.round(strength * 900 + brand * 80)),
+        fans: Math.max(1500, Math.round(fans * .42)),
+        brand: Math.max(450, Math.round(brand * .32 + 450)),
+        talents: Math.max(45, 35 + state.leagueIndex * 18)
+      };
+    }
+
+    function buySportRun() {
+      if ((state.sportRun.cooldown || 0) > 0 || !payCosts(sportRunCost())) return;
+      state.lauf = Big.add(state.lauf, Big.one());
+      state.sportRun.cooldown = 300 + state.leagueIndex * 45;
+      addLog("Sportlicher Lauf vorbereitet. Die Mannschaft kann jetzt in einen heissen Rhythmus kommen.");
+      render();
+    }
+
+    function activateSportRun() {
+      if (sportRunActive() || Big.cmp(state.lauf, Big.one()) < 0) return;
+      state.lauf = Big.sub(state.lauf, Big.one());
+      state.sportRun.active = 90;
+      state.mood = Math.min(2.5, state.mood + .18);
+      addLog("Sportlicher Lauf aktiviert: 90 Sekunden deutlich mehr sportliche Entwicklung.");
+      render();
+    }
+
     function capNumber(value, max) {
       return Math.min(Big.toNumber(value), max);
     }
@@ -990,10 +1033,11 @@
       const marketing = 1 + upgradeLevel("marketing") * .16;
       const allTrainer = 1 + trainerBonus("all");
       const legend = 1 + Math.log10(1 + Big.toNumber(state.legends)) * .35;
+      const run = sportRunActive() ? 4.25 : 1;
       return {
         euro: auto * catering * allTrainer * legend,
         fans: auto * marketing * allTrainer * legend,
-        strength: auto * academy * (1 + trainerBonus("strength")) * allTrainer * legend,
+        strength: auto * academy * (1 + trainerBonus("strength")) * allTrainer * legend * run,
         brand: auto * marketing * (1 + trainerBonus("brand")) * allTrainer * legend,
         talents: auto * academy * allTrainer * legend
       };
@@ -1313,6 +1357,8 @@
       state.mood = Math.max(1, state.mood - dt * .006);
       state.matchCooldown = Math.max(0, (state.matchCooldown || 0) - dt);
       state.competitionCooldown = Math.max(0, (state.competitionCooldown || 0) - dt);
+      state.sportRun.active = Math.max(0, (state.sportRun.active || 0) - dt);
+      state.sportRun.cooldown = Math.max(0, (state.sportRun.cooldown || 0) - dt);
 
       const interval = autoInterval();
       if (interval > 0) {
@@ -1353,9 +1399,11 @@
           strength: Big.from(loaded.strength),
           brand: Big.from(loaded.brand),
           talents: Big.from(loaded.talents),
+          lauf: Big.from(loaded.lauf),
           legends: Big.from(loaded.legends),
           matchCooldown: loaded.matchCooldown || 0,
           competitionCooldown: loaded.competitionCooldown || 0,
+          sportRun: { ...fresh.sportRun, ...(loaded.sportRun || {}) },
           auto: { ...fresh.auto, ...(loaded.auto || {}) },
           scout: { ...fresh.scout, ...(loaded.scout || {}) },
           lines: { ...fresh.lines, ...(loaded.lines || {}) },
@@ -1410,6 +1458,7 @@
         ["strength", Big.fmt(state.strength)],
         ["brand", Big.fmt(state.brand)],
         ["talents", Big.fmt(state.talents)],
+        ["lauf", sportRunActive() ? trim(state.sportRun.active, 0) + "s aktiv" : Big.fmt(state.lauf)],
         ["legends", Big.fmt(state.legends)]
       ].map(([key, value]) => {
         const meta = resourceMeta[key];
@@ -1438,8 +1487,10 @@
         renderUpgrades();
         renderTab();
         renderCompetitions();
+        renderSportRun();
         renderFeed();
       } else {
+        renderSportRun();
         updateButtons();
       }
       drawStadium();
@@ -1502,6 +1553,26 @@
         </div>
       </article>` : `<article class="card"><h3>Maximal automatisiert</h3><p class="muted">Der Spieltag laeuft so eigenstaendig, wie ein Fussballkonzern eben laufen kann.</p></article>`;
       document.getElementById("automationList").innerHTML = nextCard + owned;
+    }
+
+    function renderSportRun() {
+      const cost = sportRunCost();
+      const active = sportRunActive();
+      const available = (state.sportRun.cooldown || 0) <= 0;
+      const status = active
+        ? "Aktiv fuer " + trim(state.sportRun.active, 1) + "s: Teamstaerke-Produktion x4,25."
+        : (available ? "Seltene Chance verfuegbar. Sehr teuer, aber sportlich massiv." : "Neue Chance in " + trim(state.sportRun.cooldown, 1) + "s.");
+      document.getElementById("sportRunPanel").innerHTML = `<article class="card decision-card">
+        <div class="card-head">
+          <div><h3>Sportlicher Lauf</h3><p class="muted">${status}</p></div>
+          <span class="tag">${Big.fmt(state.lauf)} bereit</span>
+        </div>
+        <div class="cost-list">${formatCosts(cost)}</div>
+        <div class="split">
+          <button data-action="buy-run" ${available && canPayCosts(cost) ? "" : "disabled"}>Teuer vorbereiten</button>
+          <button data-action="activate-run" ${!active && Big.cmp(state.lauf, Big.one()) >= 0 ? "" : "disabled"}>Lauf starten</button>
+        </div>
+      </article>`;
     }
 
     function formatCosts(costs) {
@@ -1696,6 +1767,12 @@
       document.querySelectorAll("button[data-action='scout-refresh']").forEach(button => {
         button.disabled = !canPayCosts(scoutCost());
       });
+      document.querySelectorAll("button[data-action='buy-run']").forEach(button => {
+        button.disabled = (state.sportRun.cooldown || 0) > 0 || !canPayCosts(sportRunCost());
+      });
+      document.querySelectorAll("button[data-action='activate-run']").forEach(button => {
+        button.disabled = sportRunActive() || Big.cmp(state.lauf, Big.one()) < 0;
+      });
     }
 
     function labelFor(key) {
@@ -1841,6 +1918,7 @@
     document.getElementById("exportBtn").addEventListener("click", exportSave);
     document.getElementById("importBtn").addEventListener("click", importSave);
     document.getElementById("resetBtn").addEventListener("click", resetGame);
+    document.getElementById("restartTopBtn").addEventListener("click", resetGame);
     document.getElementById("prestigeBtn").addEventListener("click", prestige);
     document.getElementById("tabs").addEventListener("click", event => {
       const button = event.target.closest("button[data-tab]");
@@ -1863,6 +1941,8 @@
       if (action === "contract") signContract(id);
       if (action === "competition") playCompetition(id, button.dataset.plan);
       if (action === "automation") buyAutomation();
+      if (action === "buy-run") buySportRun();
+      if (action === "activate-run") activateSportRun();
     });
 
     render();
